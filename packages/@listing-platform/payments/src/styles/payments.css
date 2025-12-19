@@ -1,0 +1,14 @@
+/* Payments SDK Styles */
+
+.payment-form {
+  font-family: inherit;
+}
+
+.pricing-card {
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.pricing-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}

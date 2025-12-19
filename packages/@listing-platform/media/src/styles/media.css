@@ -1,0 +1,3 @@
+/* Media SDK Styles */
+.lightbox-overlay { backdrop-filter: blur(4px); }
+.gallery-image { transition: transform 0.2s ease; }

@@ -216,3 +216,5 @@ CREATE TRIGGER trigger_update_availability_bookings
   AFTER INSERT OR UPDATE OF status OR DELETE ON bookings
   FOR EACH ROW EXECUTE FUNCTION update_availability_bookings();
 
+
+

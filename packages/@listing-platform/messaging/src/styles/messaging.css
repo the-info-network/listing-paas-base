@@ -1,0 +1,24 @@
+/* Messaging SDK Styles */
+
+.message-thread {
+  font-family: inherit;
+}
+
+.message-bubble {
+  animation: fadeInUp 0.2s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.conversation-list button:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}

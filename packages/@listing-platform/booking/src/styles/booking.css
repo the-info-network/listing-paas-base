@@ -1,0 +1,55 @@
+/* Booking SDK Styles */
+
+.booking-widget {
+  font-family: inherit;
+}
+
+.booking-form {
+  max-width: 100%;
+}
+
+.availability-calendar {
+  user-select: none;
+}
+
+/* Calendar animations */
+.availability-calendar button {
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.availability-calendar button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* Booking card hover effects */
+.booking-card {
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.booking-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Form field focus states */
+.booking-form input:focus,
+.booking-form select:focus,
+.booking-form textarea:focus {
+  outline: none;
+  ring: 2px;
+}
+
+/* Loading skeleton */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.booking-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}

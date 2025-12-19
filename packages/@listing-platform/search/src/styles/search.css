@@ -1,0 +1,13 @@
+/* Search SDK Styles */
+
+.search-bar input:focus {
+  outline: none;
+}
+
+.filter-panel {
+  font-family: inherit;
+}
+
+.facet-filter label:hover {
+  color: #374151;
+}

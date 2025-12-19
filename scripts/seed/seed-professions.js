@@ -203,3 +203,5 @@ if (require.main === module) {
 
 module.exports = { professions, generateSQL, generateJSON };
 
+
+

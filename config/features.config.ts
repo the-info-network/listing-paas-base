@@ -70,6 +70,142 @@ export const featuresConfig = {
         abTesting: false,
       },
     },
+    favorites: {
+      enabled: true,
+      config: {
+        maxFavoritesPerUser: 100,
+        enableCollections: true,
+        enableNotes: true,
+        syncAcrossDevices: true,
+      },
+    },
+    messaging: {
+      enabled: true,
+      config: {
+        enableRealtime: true,
+        enableAttachments: true,
+        maxAttachmentSize: 10, // MB
+        enableReadReceipts: true,
+        retentionDays: 365,
+      },
+    },
+    search: {
+      enabled: true,
+      config: {
+        enableFullTextSearch: true,
+        enableFuzzySearch: true,
+        enableAutocomplete: true,
+        enableFacets: true,
+        enableSavedSearches: true,
+        maxSavedSearches: 10,
+        resultsPerPage: 20,
+      },
+    },
+    analytics: {
+      enabled: true, // Listing owner analytics
+      config: {
+        trackViews: true,
+        trackLeads: true,
+        trackConversions: true,
+        retentionDays: 365,
+        enableExport: true,
+      },
+    },
+    // Optional SDKs - enable as needed for your platform
+    payments: {
+      enabled: false, // Stripe/PayPal payment processing
+      provider: 'stripe', // 'stripe', 'paypal', 'square'
+      config: {
+        publicKey: process.env.NEXT_PUBLIC_STRIPE_KEY,
+        enableSubscriptions: true,
+        enableInvoices: true,
+        enableRefunds: true,
+      },
+    },
+    notifications: {
+      enabled: false, // Push, email, in-app notifications
+      config: {
+        enablePush: true,
+        enableEmailDigest: true,
+        enableInApp: true,
+        enableSMS: false,
+      },
+    },
+    media: {
+      enabled: false, // Image gallery, video player, virtual tours
+      config: {
+        enableGallery: true,
+        enableLightbox: true,
+        enableVideoPlayer: true,
+        enableVirtualTour: false,
+        maxImagesPerListing: 20,
+      },
+    },
+    calendar: {
+      enabled: false, // Event scheduling, availability
+      config: {
+        defaultView: 'month',
+        enableRecurringEvents: true,
+        enableTimeSlots: true,
+        timezone: 'auto',
+      },
+    },
+    forms: {
+      enabled: false, // Dynamic form builder
+      config: {
+        enableConditionalLogic: true,
+        enableValidation: true,
+        enableFileUploads: true,
+        maxFieldsPerForm: 50,
+      },
+    },
+    auth: {
+      enabled: false, // Pre-built auth components (if not using app's auth)
+      config: {
+        enableOAuth: true,
+        oauthProviders: ['google', 'github'],
+        enableMagicLink: true,
+        enablePasswordReset: true,
+      },
+    },
+    chat: {
+      enabled: false, // Real-time chat widget
+      config: {
+        enableWebSocket: true,
+        enableTypingIndicators: true,
+        enableReadReceipts: true,
+        enableFileSharing: true,
+        maxMessageLength: 2000,
+      },
+    },
+    ai: {
+      enabled: false, // AI recommendations, content generation
+      config: {
+        enableRecommendations: true,
+        enableContentGeneration: true,
+        enableImageAnalysis: false,
+        enableSimilarListings: true,
+        provider: 'openai', // 'openai', 'anthropic', 'local'
+      },
+    },
+    export: {
+      enabled: false, // PDF/CSV/Excel export
+      config: {
+        enablePDF: true,
+        enableCSV: true,
+        enableExcel: true,
+        enableBulkExport: true,
+        maxItemsPerExport: 1000,
+      },
+    },
+    verification: {
+      enabled: false, // ID/business verification
+      config: {
+        enabledTypes: ['identity', 'email', 'phone'],
+        requiredForListing: false,
+        provider: 'stripe', // 'stripe', 'jumio', 'onfido'
+      },
+    },
   },
   
   // Platform features
@@ -225,4 +361,6 @@ export function getFeatureConfig(feature: string): any {
   
   return current;
 }
+
+
 

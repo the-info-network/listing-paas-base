@@ -213,3 +213,5 @@ CREATE TRIGGER trigger_update_taxonomy_term_count
   AFTER INSERT OR DELETE ON listing_taxonomies
   FOR EACH ROW EXECUTE FUNCTION update_taxonomy_term_count();
 
+
+
