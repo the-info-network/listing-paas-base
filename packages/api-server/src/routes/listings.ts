@@ -7,6 +7,26 @@ import { getTenantFilter } from '../middleware/tenant';
 export const listingsRoutes = new Hono();
 
 // ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Escape special characters in search strings for Supabase .or() filter
+ * Prevents query injection by escaping characters that have special meaning in the DSL
+ */
+function escapeSearchQuery(search: string): string {
+  // Escape special characters: backslash, percent, underscore, and common DSL chars
+  return search
+    .replace(/\\/g, '\\\\')
+    .replace(/%/g, '\\%')
+    .replace(/_/g, '\\_')
+    .replace(/,/g, '\\,')
+    .replace(/\(/g, '\\(')
+    .replace(/\)/g, '\\)')
+    .replace(/\./g, '\\.');
+}
+
+// ============================================================================
 // Validation Schemas
 // ============================================================================
 
@@ -81,7 +101,8 @@ listingsRoutes.get('/', async (c) => {
     .range((query.page - 1) * query.limit, query.page * query.limit - 1);
   
   if (query.search) {
-    dbQuery = dbQuery.or(`title.ilike.%${query.search}%,description.ilike.%${query.search}%`);
+    const escapedSearch = escapeSearchQuery(query.search);
+    dbQuery = dbQuery.or(`title.ilike.%${escapedSearch}%,description.ilike.%${escapedSearch}%`);
   }
   
   if (query.status) {
@@ -126,7 +147,8 @@ listingsRoutes.get('/published', async (c) => {
     .range((query.page - 1) * query.limit, query.page * query.limit - 1);
   
   if (query.search) {
-    dbQuery = dbQuery.or(`title.ilike.%${query.search}%,description.ilike.%${query.search}%`);
+    const escapedSearch = escapeSearchQuery(query.search);
+    dbQuery = dbQuery.or(`title.ilike.%${escapedSearch}%,description.ilike.%${escapedSearch}%`);
   }
   
   if (query.minPrice !== undefined) {
@@ -142,6 +164,35 @@ listingsRoutes.get('/published', async (c) => {
   if (error) throw error;
   
   return paginated(c, data || [], query.page, query.limit, count || 0);
+});
+
+/**
+ * GET /api/listings/slug/:slug
+ * Get a listing by slug (must be before /:id to avoid route conflicts)
+ */
+listingsRoutes.get('/slug/:slug', async (c) => {
+  const { slug } = c.req.param();
+  const { tenant_id } = getTenantFilter(c);
+  const supabase = getAdminClient();
+  
+  const { data, error } = await supabase
+    .from('listings')
+    .select('*')
+    .eq('slug', slug)
+    .eq('tenant_id', tenant_id)
+    .single();
+  
+  if (error) {
+    if (error.code === 'PGRST116') {
+      return errors.notFound(c, 'Listing');
+    }
+    throw error;
+  }
+  
+  // Increment view count atomically using raw SQL to avoid race conditions
+  await supabase.rpc('increment_view_count', { listing_id: data.id });
+  
+  return success(c, data);
 });
 
 /**
@@ -166,38 +217,6 @@ listingsRoutes.get('/:id', async (c) => {
     }
     throw error;
   }
-  
-  return success(c, data);
-});
-
-/**
- * GET /api/listings/slug/:slug
- * Get a listing by slug
- */
-listingsRoutes.get('/slug/:slug', async (c) => {
-  const { slug } = c.req.param();
-  const { tenant_id } = getTenantFilter(c);
-  const supabase = getAdminClient();
-  
-  const { data, error } = await supabase
-    .from('listings')
-    .select('*')
-    .eq('slug', slug)
-    .eq('tenant_id', tenant_id)
-    .single();
-  
-  if (error) {
-    if (error.code === 'PGRST116') {
-      return errors.notFound(c, 'Listing');
-    }
-    throw error;
-  }
-  
-  // Increment view count
-  await supabase
-    .from('listings')
-    .update({ view_count: (data.view_count || 0) + 1 })
-    .eq('id', data.id);
   
   return success(c, data);
 });

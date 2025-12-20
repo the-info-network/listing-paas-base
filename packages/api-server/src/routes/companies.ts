@@ -7,6 +7,25 @@ import { getTenantFilter } from '../middleware/tenant';
 export const companiesRoutes = new Hono();
 
 // ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Escape special characters in search strings for Supabase .or() filter
+ * Prevents query injection by escaping characters that have special meaning in the DSL
+ */
+function escapeSearchQuery(search: string): string {
+  return search
+    .replace(/\\/g, '\\\\')
+    .replace(/%/g, '\\%')
+    .replace(/_/g, '\\_')
+    .replace(/,/g, '\\,')
+    .replace(/\(/g, '\\(')
+    .replace(/\)/g, '\\)')
+    .replace(/\./g, '\\.');
+}
+
+// ============================================================================
 // Validation Schemas
 // ============================================================================
 
@@ -62,7 +81,8 @@ companiesRoutes.get('/', async (c) => {
     .range((query.page - 1) * query.limit, query.page * query.limit - 1);
   
   if (query.search) {
-    dbQuery = dbQuery.or(`name.ilike.%${query.search}%,email.ilike.%${query.search}%`);
+    const escapedSearch = escapeSearchQuery(query.search);
+    dbQuery = dbQuery.or(`name.ilike.%${escapedSearch}%,email.ilike.%${escapedSearch}%`);
   }
   
   if (query.industry) {

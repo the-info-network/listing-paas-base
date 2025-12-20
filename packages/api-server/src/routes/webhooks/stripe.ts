@@ -37,13 +37,35 @@ stripeWebhookRoutes.post('/', async (c) => {
   
   const supabase = getAdminClient();
   
-  // Log the webhook event
-  await supabase.from('stripe_webhook_events').insert({
-    stripe_event_id: event.id,
-    event_type: event.type,
-    payload: JSON.parse(JSON.stringify(event.data.object)) as Record<string, unknown>,
-    processed: false,
-  });
+  // Check for duplicate event (idempotency check)
+  const { data: existingEvent } = await supabase
+    .from('stripe_webhook_events')
+    .select('id, processed')
+    .eq('stripe_event_id', event.id)
+    .single();
+  
+  if (existingEvent) {
+    // Event already exists - if processed, skip; if not, it might be a retry
+    if (existingEvent.processed) {
+      console.log(`Duplicate event ${event.id} already processed, skipping`);
+      return c.json({ received: true, duplicate: true });
+    }
+    console.log(`Retrying unprocessed event ${event.id}`);
+  } else {
+    // Log the webhook event (first time seeing it)
+    const { error: insertError } = await supabase.from('stripe_webhook_events').insert({
+      stripe_event_id: event.id,
+      event_type: event.type,
+      payload: JSON.parse(JSON.stringify(event.data.object)) as Record<string, unknown>,
+      processed: false,
+    });
+    
+    // Handle unique constraint violation (race condition with concurrent requests)
+    if (insertError?.code === '23505') {
+      console.log(`Concurrent duplicate event ${event.id}, skipping`);
+      return c.json({ received: true, duplicate: true });
+    }
+  }
   
   try {
     switch (event.type) {
