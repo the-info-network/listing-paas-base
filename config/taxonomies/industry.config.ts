@@ -226,3 +226,5 @@ export const industryConfig: TaxonomyConfig = {
 
 export default industryConfig;
 
+
+

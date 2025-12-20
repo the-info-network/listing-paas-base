@@ -194,3 +194,5 @@ CREATE TRIGGER trigger_update_review_helpful_count
   AFTER INSERT OR UPDATE OR DELETE ON review_votes
   FOR EACH ROW EXECUTE FUNCTION update_review_helpful_count();
 
+
+

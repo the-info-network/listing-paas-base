@@ -282,3 +282,5 @@ export const locationConfig: TaxonomyConfig = {
 
 export default locationConfig;
 
+
+

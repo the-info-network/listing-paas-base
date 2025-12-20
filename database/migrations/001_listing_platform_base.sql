@@ -151,3 +151,5 @@ BEGIN
   RAISE NOTICE 'Next Steps: Configure your taxonomy and field definitions';
 END $$;
 
+
+

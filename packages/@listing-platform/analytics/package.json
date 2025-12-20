@@ -1,0 +1,36 @@
+{
+  "name": "@listing-platform/analytics",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Analytics and insights SDK for listing owners",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./components": "./dist/components/index.js",
+    "./hooks": "./dist/hooks/index.js",
+    "./types": "./dist/types/index.js",
+    "./styles": "./dist/styles/analytics.css"
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@listing-platform/design-tokens": "workspace:*",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.6.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "@supabase/supabase-js": "^2.0.0"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@types/react": "^18.0.0 || ^19.0.0",
+    "@types/node": "^20"
+  }
+}

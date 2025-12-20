@@ -316,3 +316,5 @@ export const hybridConfig: TaxonomyConfig = {
 
 export default hybridConfig;
 
+
+

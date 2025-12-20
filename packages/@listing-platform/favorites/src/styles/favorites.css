@@ -1,0 +1,41 @@
+/* Favorites SDK Styles */
+
+.favorite-button {
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.favorite-button:active:not(:disabled) {
+  transform: scale(0.9);
+}
+
+/* Heart animation */
+@keyframes heartPop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.favorite-button.favorited svg {
+  animation: heartPop 0.3s ease;
+}
+
+/* Card hover effects */
+.favorites-list .favorite-card {
+  transition: box-shadow 0.2s ease, border-color 0.15s ease;
+}
+
+.favorites-list .favorite-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Save search form */
+.save-search-form input:focus,
+.save-search-form select:focus {
+  outline: none;
+}

@@ -1,0 +1,3 @@
+/* Notifications SDK Styles */
+.notification-item { transition: background-color 0.15s ease; }
+.notification-center { max-height: 480px; }

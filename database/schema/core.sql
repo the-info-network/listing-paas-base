@@ -84,3 +84,5 @@ CREATE POLICY "Users can manage their alerts"
   ON listing_alerts FOR ALL
   USING (auth.uid() = user_id);
 
+
+

@@ -288,3 +288,5 @@ if (require.main === module) {
 
 module.exports = { locations, generateSQL, generateJSON, slugify };
 
+
+

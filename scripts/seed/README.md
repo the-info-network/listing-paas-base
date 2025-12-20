@@ -265,3 +265,5 @@ Ensure you're using a service role key or admin connection, not anon key.
 
 MIT License - Part of Listing Platform Base Template
 
+
+

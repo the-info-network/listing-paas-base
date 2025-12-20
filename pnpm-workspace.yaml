@@ -2,4 +2,5 @@ packages:
   - 'apps/*'
   - 'packages/@tinadmin/*'
   - 'packages/@listing-platform/*'
+  - 'packages/api-server'
   - 'packages/sdks/*'
