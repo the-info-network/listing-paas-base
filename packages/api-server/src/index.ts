@@ -13,6 +13,7 @@ import { companiesRoutes } from './routes/companies';
 import { dealsRoutes } from './routes/deals';
 import { tasksRoutes } from './routes/tasks';
 import { listingsRoutes } from './routes/listings';
+import { bookingRoutes } from './routes/booking';
 import { publicRoutes } from './routes/public';
 import { searchRoutes } from './routes/search';
 import { stripeWebhookRoutes } from './routes/webhooks/stripe';
@@ -86,6 +87,9 @@ protectedApi.route('/tasks', tasksRoutes);
 
 // Listings Routes
 protectedApi.route('/listings', listingsRoutes);
+
+// Booking Routes
+protectedApi.route('/booking', bookingRoutes);
 
 // Mount protected routes
 app.route('/api', protectedApi);
