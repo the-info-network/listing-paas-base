@@ -14,6 +14,7 @@ import { dealsRoutes } from './routes/deals';
 import { tasksRoutes } from './routes/tasks';
 import { listingsRoutes } from './routes/listings';
 import { bookingRoutes } from './routes/booking';
+import { sdkAuthRoutes } from './routes/sdk-auth';
 import { publicRoutes } from './routes/public';
 import { searchRoutes } from './routes/search';
 import { stripeWebhookRoutes } from './routes/webhooks/stripe';
@@ -90,6 +91,9 @@ protectedApi.route('/listings', listingsRoutes);
 
 // Booking Routes
 protectedApi.route('/booking', bookingRoutes);
+
+// SDK Auth Routes (also protected, but can use API key auth)
+protectedApi.route('/sdk', sdkAuthRoutes);
 
 // Mount protected routes
 app.route('/api', protectedApi);
