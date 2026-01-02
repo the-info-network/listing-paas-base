@@ -12,6 +12,7 @@ export { payoutRoutes } from './payouts';
 export { sdkAuthRoutes } from './sdk-auth';
 export { publicRoutes } from './public';
 export { searchRoutes } from './search';
+export { knowledgeBaseRoutes } from './knowledge-base';
 export { stripeWebhookRoutes } from './webhooks/stripe';
 export { supabaseWebhookRoutes } from './webhooks/supabase';
 

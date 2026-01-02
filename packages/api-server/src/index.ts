@@ -21,6 +21,7 @@ import { payoutRoutes } from './routes/payouts';
 import { sdkAuthRoutes } from './routes/sdk-auth';
 import { publicRoutes } from './routes/public';
 import { searchRoutes } from './routes/search';
+import { knowledgeBaseRoutes } from './routes/knowledge-base';
 import { stripeWebhookRoutes } from './routes/webhooks/stripe';
 import { supabaseWebhookRoutes } from './routes/webhooks/supabase';
 
@@ -103,6 +104,9 @@ protectedApi.route('/subscription', subscriptionUpgradeRoutes);
 
 // Payout Routes
 protectedApi.route('/payouts', payoutRoutes);
+
+// Knowledge Base Routes
+protectedApi.route('/knowledge-base', knowledgeBaseRoutes);
 
 // SDK Auth Routes (also protected, but can use API key auth)
 protectedApi.route('/sdk', sdkAuthRoutes);
