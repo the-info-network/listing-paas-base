@@ -124,7 +124,11 @@ publicRoutes.get('/listings/slug/:slug', async (c) => {
   }
 
   // Increment view count (fire and forget)
-  supabase.rpc('increment_view_count', { listing_id: data.id }).catch(() => {});
+  void (async () => {
+    try {
+      await supabase.rpc('increment_view_count', { listing_id: data.id });
+    } catch {}
+  })();
 
   return success(c, data);
 });
@@ -386,7 +390,11 @@ publicRoutes.get('/knowledge-base/:id', async (c) => {
   }
 
   // Increment view count (fire and forget)
-  void supabase.rpc('increment_knowledge_document_views', { document_id: id }).then(() => {}).catch(() => {});
+  void (async () => {
+    try {
+      await supabase.rpc('increment_knowledge_document_views', { document_id: id });
+    } catch {}
+  })();
 
   return success(c, data);
 });
