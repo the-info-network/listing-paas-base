@@ -5,7 +5,7 @@ import { SearchBar } from "@/components/search";
 import { ListingCard } from "@/components/listings";
 import { AccountCard } from "@/components/accounts/AccountCard";
 import { getFeaturedListings, getCategories, type Listing } from "@/lib/listings";
-import { getFeaturedAccounts } from "@/lib/accounts";
+import { getFeaturedAccounts, type FeaturedAccount } from "@/lib/accounts";
 
 /**
  * Home Page / Landing Page
@@ -31,7 +31,7 @@ export default async function HomePage() {
   // Fetch featured listings for homepage
   let featuredListings: Listing[] = [];
   let categories: Array<{ slug: string; name: string; count: number }> = [];
-  let featuredAccounts = [];
+  let featuredAccounts: FeaturedAccount[] = [];
   
   try {
     featuredListings = await getFeaturedListings(6);

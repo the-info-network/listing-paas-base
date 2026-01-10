@@ -34,12 +34,16 @@ export async function getFeaturedAccounts(limit: number = 4): Promise<FeaturedAc
     }
 
     const result = await response.json();
-    
+
     // Handle both { success: true, data: [...] } and direct array responses
-    const accounts = result.data || result || [];
-    
+    const raw = Array.isArray(result?.data)
+      ? result.data
+      : Array.isArray(result)
+        ? result
+        : [];
+
     // Map to FeaturedAccount format
-    return accounts.map((account: any) => ({
+    return raw.map((account: FeaturedAccount) => ({
       id: account.id,
       name: account.name,
       domain: account.domain,
