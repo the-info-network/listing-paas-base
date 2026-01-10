@@ -76,7 +76,7 @@ export async function apiKeyAuthMiddleware(c: Context, next: Next) {
       .from('api_keys')
       .update({
         last_used_at: new Date().toISOString(),
-        usage_count: (apiKeyData.usage_count || 0) + 1,
+        // usage_count: (apiKeyData.usage_count || 0) + 1, // Field not in schema
       })
       .eq('id', apiKeyData.id);
     

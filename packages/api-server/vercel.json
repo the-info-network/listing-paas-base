@@ -1,7 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "npm install -g pnpm@latest && cd ../.. && pnpm install --frozen-lockfile",
-  "buildCommand": "echo 'Skipping TypeScript build - using api/index.ts directly'",
+  "buildCommand": "cd ../.. && pnpm turbo build --filter=@listing-platform/api-server",
+  "outputDirectory": ".",
   "rewrites": [
     {
       "source": "/",

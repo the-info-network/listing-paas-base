@@ -147,7 +147,26 @@ async function handleListingEvent(payload: SupabaseWebhookPayload): Promise<void
   if (typesenseEnabled) {
     try {
       // Dynamic import to avoid errors when Typesense is not configured
-      const { syncListing, deleteListing } = await import('@listing-platform/search');
+      // Use type assertion to bypass TypeScript check for optional module
+      let syncListing: ((listing: any) => Promise<void>) | undefined;
+      let deleteListing: ((id: string) => Promise<void>) | undefined;
+      
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const searchModule = await import('@listing-platform/search' as string).catch(() => null);
+        if (searchModule) {
+          syncListing = searchModule.syncListing;
+          deleteListing = searchModule.deleteListing;
+        }
+      } catch (importError) {
+        console.warn('@listing-platform/search module not available, skipping search sync');
+        return; // Exit early if search module is not available
+      }
+      
+      if (!syncListing || !deleteListing) {
+        console.warn('Search functions not available, skipping search sync');
+        return;
+      }
 
       switch (payload.type) {
         case 'INSERT':

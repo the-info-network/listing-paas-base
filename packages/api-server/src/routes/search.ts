@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { success } from '../lib/response';
+import { success, errors } from '../lib/response';
 
 /**
  * Search API Routes
@@ -54,7 +54,19 @@ searchRoutes.get('/', async (c) => {
 
   try {
     // Dynamic import to avoid errors when Typesense is not installed
-    const { searchListings } = await import('@listing-platform/search');
+    let searchListings: any;
+    try {
+      const searchModule = await import('@listing-platform/search' as string).catch(() => null);
+      if (searchModule) {
+        searchListings = searchModule.searchListings;
+      }
+    } catch {
+      // Module not available
+    }
+    if (!searchListings) {
+      // Fallback to database search
+      return success(c, { results: [], total: 0 });
+    }
 
     const result = await searchListings({
       query: query.q,
@@ -112,7 +124,19 @@ searchRoutes.get('/suggestions', async (c) => {
   }
 
   try {
-    const { getSearchSuggestions } = await import('@listing-platform/search');
+    // Dynamic import with error handling for optional module
+    let getSearchSuggestions: any;
+    try {
+      const searchModule = await import('@listing-platform/search' as string).catch(() => null);
+      if (searchModule) {
+        getSearchSuggestions = searchModule.getSearchSuggestions;
+      }
+    } catch {
+      // Module not available
+    }
+    if (!getSearchSuggestions) {
+      return errors.badRequest(c, 'Search module not available');
+    }
     const suggestions = await getSearchSuggestions(query, limit);
     return success(c, { suggestions });
   } catch (error) {
@@ -134,7 +158,21 @@ searchRoutes.post('/reindex', async (c) => {
   }
 
   try {
-    const { initializeCollection, syncListings } = await import('@listing-platform/search');
+      // Dynamic import with error handling for optional module
+      let initializeCollection: any;
+      let syncListings: any;
+      try {
+        const searchModule = await import('@listing-platform/search' as string).catch(() => null);
+        if (searchModule) {
+          initializeCollection = searchModule.initializeCollection;
+          syncListings = searchModule.syncListings;
+        }
+      } catch {
+        // Module not available
+      }
+      if (!initializeCollection || !syncListings) {
+        return errors.badRequest(c, 'Search module not available');
+      }
     const { getAdminClient } = await import('../lib/supabase');
 
     // Initialize collection

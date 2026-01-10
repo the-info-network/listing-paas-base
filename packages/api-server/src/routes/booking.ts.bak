@@ -1,57 +1,9 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { getAdminClient } from '../lib/supabase';
-import { success, created, noContent, errors, paginated } from '../lib/response';
+import { success, created, noContent, errors } from '../lib/response';
 import { getTenantFilter } from '../middleware/tenant';
-// TODO: Install @listing-platform/booking package
-// import { EventTypeService, RecurringService, TeamService, CalendarSyncService, VideoMeetingService, RoundRobinService } from '@listing-platform/booking/services';
-
-// Placeholder services - replace with actual implementations when package is available
-class EventTypeService {
-  constructor(private supabase: any) {}
-  async listEventTypes(listingId: string, options?: any) { return []; }
-  async getEventType(id: string): Promise<any> { 
-    // Return a default event type structure
-    return { id, name: '', timezone: 'UTC', durationMinutes: 30 };
-  }
-  async createEventType(data: any) { return data; }
-  async updateEventType(id: string, data: any) { return data; }
-  async deleteEventType(id: string) { return; }
-}
-class RecurringService { 
-  constructor(private supabase: any) {}
-  async createPattern(data: any) { return data; }
-  async listPatterns(eventTypeId: string) { return []; }
-  async generateSlots(eventTypeId: string, startDate: string | Date, endDate: string | Date) { return []; }
-}
-class TeamService { 
-  constructor(private supabase: any) {}
-  async listMembers(listingId: string) { return []; }
-  async addMember(data: any) { return data; }
-  async updateMember(id: string, data: any) { return data; }
-  async removeMember(id: string) { return; }
-  async removeTeamMember(id: string) { return; }
-  async addTeamMember(data: any) { return data; }
-  async updateTeamMember(id: string, data: any) { return data; }
-  async listTeamMembers(listingId: string, options?: any) { return []; }
-}
-class CalendarSyncService { 
-  constructor(private supabase: any) {}
-  async listIntegrations(listingId: string) { return []; }
-  async connectCalendar(data: any) { return data; }
-  async syncCalendar(id: string) { return; }
-  async deleteIntegration(id: string, listingId?: string) { return; }
-  async createIntegration(data: any) { return data; }
-}
-class VideoMeetingService { 
-  constructor(private supabase: any) {}
-  async createVideoMeeting(data: any): Promise<any> { return data; }
-}
-class RoundRobinService { 
-  constructor(private supabase: any) {}
-  async trackAssignment(bookingId: string, assigneeId: string) { return; }
-  async assignBooking(bookingId: string, eventTypeId: string): Promise<string | null> { return null; }
-}
+import { EventTypeService, RecurringService, TeamService, CalendarSyncService, VideoMeetingService, RoundRobinService } from '@listing-platform/booking/services';
 
 export const bookingRoutes = new Hono();
 
@@ -84,28 +36,7 @@ const createEventTypeSchema = z.object({
   message: "Either listingId or userId must be provided",
 });
 
-// Create update schema manually since .partial() doesn't work on ZodEffects
-const updateEventTypeSchema = z.object({
-  listingId: z.string().uuid().optional(),
-  userId: z.string().uuid().optional(),
-  name: z.string().min(1).optional(),
-  slug: z.string().min(1).regex(/^[a-z0-9-]+$/).optional(),
-  description: z.string().optional(),
-  durationMinutes: z.number().int().min(1).optional(),
-  price: z.number().min(0).optional(),
-  currency: z.string().length(3).optional(),
-  bufferBefore: z.number().int().min(0).optional(),
-  bufferAfter: z.number().int().min(0).optional(),
-  requiresConfirmation: z.boolean().optional(),
-  requiresPayment: z.boolean().optional(),
-  instantBooking: z.boolean().optional(),
-  customQuestions: z.array(z.any()).optional(),
-  recurringConfig: z.any().optional(),
-  timezone: z.string().optional(),
-  metadata: z.record(z.unknown()).optional(),
-  bookingType: z.enum(['location', 'meeting', 'hybrid']).optional(),
-  videoProvider: z.enum(['none', 'zoom', 'microsoft_teams']).optional(),
-  videoSettings: z.record(z.unknown()).optional(),
+const updateEventTypeSchema = createEventTypeSchema.partial().extend({
   active: z.boolean().optional(),
 });
 
@@ -166,7 +97,7 @@ bookingRoutes.get('/event-types', async (c) => {
     const activeOnly = c.req.query('activeOnly') === 'true';
 
     if (!listingId) {
-      return errors.badRequest(c, 'listingId is required');
+      return errors(c, 'listingId is required', 400);
     }
 
     const supabase = getAdminClient();
@@ -175,7 +106,7 @@ bookingRoutes.get('/event-types', async (c) => {
 
     return success(c, { eventTypes });
   } catch (error) {
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to list event types');
+    return errors(c, error instanceof Error ? error.message : 'Failed to list event types', 500);
   }
 });
 
@@ -190,9 +121,9 @@ bookingRoutes.get('/event-types/:id', async (c) => {
     return success(c, { eventType });
   } catch (error) {
     if (error instanceof Error && error.message.includes('not found')) {
-      return errors.notFound(c, error.message);
+      return errors(c, error.message, 404);
     }
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to get event type');
+    return errors(c, error instanceof Error ? error.message : 'Failed to get event type', 500);
   }
 });
 
@@ -218,9 +149,9 @@ bookingRoutes.post('/event-types', async (c) => {
     return created(c, { eventType });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return errors.validationError(c, error.errors);
+      return errors(c, 'Validation error', 400, error.errors);
     }
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to create event type');
+    return errors(c, error instanceof Error ? error.message : 'Failed to create event type', 500);
   }
 });
 
@@ -238,12 +169,12 @@ bookingRoutes.patch('/event-types/:id', async (c) => {
     return success(c, { eventType });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return errors.validationError(c, error.errors);
+      return errors(c, 'Validation error', 400, error.errors);
     }
     if (error instanceof Error && error.message.includes('not found')) {
-      return errors.notFound(c, error.message);
+      return errors(c, error.message, 404);
     }
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to update event type');
+    return errors(c, error instanceof Error ? error.message : 'Failed to update event type', 500);
   }
 });
 
@@ -258,9 +189,9 @@ bookingRoutes.delete('/event-types/:id', async (c) => {
     return noContent(c);
   } catch (error) {
     if (error instanceof Error && error.message.includes('not found')) {
-      return errors.notFound(c, error.message);
+      return errors(c, error.message, 404);
     }
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to delete event type');
+    return errors(c, error instanceof Error ? error.message : 'Failed to delete event type', 500);
   }
 });
 
@@ -300,9 +231,9 @@ bookingRoutes.post('/availability/generate', async (c) => {
     return success(c, { slots, count: slots.length });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return errors.validationError(c, error.errors);
+      return errors(c, 'Validation error', 400, error.errors);
     }
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to generate slots');
+    return errors(c, error instanceof Error ? error.message : 'Failed to generate slots', 500);
   }
 });
 
@@ -323,9 +254,9 @@ bookingRoutes.post('/recurring-patterns', async (c) => {
     return created(c, { pattern });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return errors.validationError(c, error.errors);
+      return errors(c, 'Validation error', 400, error.errors);
     }
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to create recurring pattern');
+    return errors(c, error instanceof Error ? error.message : 'Failed to create recurring pattern', 500);
   }
 });
 
@@ -335,7 +266,7 @@ bookingRoutes.get('/recurring-patterns', async (c) => {
     const eventTypeId = c.req.query('eventTypeId');
 
     if (!eventTypeId) {
-      return errors.badRequest(c, 'eventTypeId is required');
+      return errors(c, 'eventTypeId is required', 400);
     }
 
     const supabase = getAdminClient();
@@ -344,7 +275,7 @@ bookingRoutes.get('/recurring-patterns', async (c) => {
 
     return success(c, { patterns });
   } catch (error) {
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to list recurring patterns');
+    return errors(c, error instanceof Error ? error.message : 'Failed to list recurring patterns', 500);
   }
 });
 
@@ -359,7 +290,7 @@ bookingRoutes.get('/team', async (c) => {
     const activeOnly = c.req.query('activeOnly') === 'true';
 
     if (!listingId) {
-      return errors.badRequest(c, 'listingId is required');
+      return errors(c, 'listingId is required', 400);
     }
 
     const supabase = getAdminClient();
@@ -368,7 +299,7 @@ bookingRoutes.get('/team', async (c) => {
 
     return success(c, { members });
   } catch (error) {
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to list team members');
+    return errors(c, error instanceof Error ? error.message : 'Failed to list team members', 500);
   }
 });
 
@@ -389,9 +320,9 @@ bookingRoutes.post('/team', async (c) => {
     return created(c, { member });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return errors.validationError(c, error.errors);
+      return errors(c, 'Validation error', 400, error.errors);
     }
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to add team member');
+    return errors(c, error instanceof Error ? error.message : 'Failed to add team member', 500);
   }
 });
 
@@ -409,12 +340,12 @@ bookingRoutes.patch('/team/:id', async (c) => {
     return success(c, { member });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return errors.validationError(c, error.errors);
+      return errors(c, 'Validation error', 400, error.errors);
     }
     if (error instanceof Error && error.message.includes('not found')) {
-      return errors.notFound(c, error.message);
+      return errors(c, error.message, 404);
     }
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to update team member');
+    return errors(c, error instanceof Error ? error.message : 'Failed to update team member', 500);
   }
 });
 
@@ -429,9 +360,9 @@ bookingRoutes.delete('/team/:id', async (c) => {
     return noContent(c);
   } catch (error) {
     if (error instanceof Error && error.message.includes('not found')) {
-      return errors.notFound(c, error.message);
+      return errors(c, error.message, 404);
     }
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to remove team member');
+    return errors(c, error instanceof Error ? error.message : 'Failed to remove team member', 500);
   }
 });
 
@@ -445,7 +376,7 @@ bookingRoutes.get('/calendar/integrations', async (c) => {
     const listingId = c.req.query('listingId');
 
     if (!listingId) {
-      return errors.badRequest(c, 'listingId is required');
+      return errors(c, 'listingId is required', 400);
     }
 
     const supabase = getAdminClient();
@@ -454,7 +385,7 @@ bookingRoutes.get('/calendar/integrations', async (c) => {
 
     return success(c, { integrations });
   } catch (error) {
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to list calendar integrations');
+    return errors(c, error instanceof Error ? error.message : 'Failed to list calendar integrations', 500);
   }
 });
 
@@ -475,9 +406,9 @@ bookingRoutes.post('/calendar/integrations', async (c) => {
     return created(c, { integration });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return errors.validationError(c, error.errors);
+      return errors(c, 'Validation error', 400, error.errors);
     }
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to connect calendar');
+    return errors(c, error instanceof Error ? error.message : 'Failed to connect calendar', 500);
   }
 });
 
@@ -496,9 +427,9 @@ bookingRoutes.post('/calendar/sync', async (c) => {
     return success(c, { message: 'Calendar sync completed' });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return errors.validationError(c, error.errors);
+      return errors(c, 'Validation error', 400, error.errors);
     }
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to sync calendar');
+    return errors(c, error instanceof Error ? error.message : 'Failed to sync calendar', 500);
   }
 });
 
@@ -513,9 +444,9 @@ bookingRoutes.delete('/calendar/integrations/:id', async (c) => {
     return noContent(c);
   } catch (error) {
     if (error instanceof Error && error.message.includes('not found')) {
-      return errors.notFound(c, error.message);
+      return errors(c, error.message, 404);
     }
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to delete calendar integration');
+    return errors(c, error instanceof Error ? error.message : 'Failed to delete calendar integration', 500);
   }
 });
 
@@ -612,15 +543,15 @@ bookingRoutes.get('/', async (c) => {
     const { data: bookings, error, count } = await dbQuery;
 
     if (error) {
-      return errors.internalError(c, error.message);
+      return errors(c, error.message, 500);
     }
 
     return paginated(c, bookings || [], query.offset / query.limit + 1, query.limit, count || 0);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return errors.validationError(c, error.errors);
+      return errors(c, 'Validation error', 400, error.errors);
     }
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to list bookings');
+    return errors(c, error instanceof Error ? error.message : 'Failed to list bookings', 500);
   }
 });
 
@@ -640,14 +571,14 @@ bookingRoutes.get('/:id', async (c) => {
 
     if (error) {
       if (error.code === 'PGRST116') {
-        return errors.notFound(c, 'Booking not found');
+        return errors(c, 'Booking not found', 404);
       }
-      return errors.internalError(c, error.message);
+      return errors(c, error.message, 500);
     }
 
     return success(c, booking);
   } catch (error) {
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to get booking');
+    return errors(c, error instanceof Error ? error.message : 'Failed to get booking', 500);
   }
 });
 
@@ -695,13 +626,16 @@ bookingRoutes.post('/', async (c) => {
           ? `${validated.end_date}T${validated.end_time}`
           : `${validated.end_date}T23:59:59`;
 
-        const assignedMemberId = await roundRobinService.assignBooking(
-          validated.event_type_id,
-          startDateTime
-        );
+        const assignedMember = await roundRobinService.assignBooking({
+          listingId,
+          eventTypeId: validated.event_type_id,
+          startTime: startDateTime,
+          endTime: endDateTime,
+          timezone: validated.timezone,
+        });
 
-        if (assignedMemberId) {
-          teamMemberId = assignedMemberId;
+        if (assignedMember) {
+          teamMemberId = assignedMember.id;
         }
       }
 
@@ -794,7 +728,7 @@ bookingRoutes.post('/', async (c) => {
       .single();
 
     if (error) {
-      return errors.internalError(c, error.message);
+      return errors(c, error.message, 500);
     }
 
     // Track round robin assignment
@@ -805,9 +739,9 @@ bookingRoutes.post('/', async (c) => {
     return created(c, booking);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return errors.validationError(c, error.errors);
+      return errors(c, 'Validation error', 400, error.errors);
     }
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to create booking');
+    return errors(c, error instanceof Error ? error.message : 'Failed to create booking', 500);
   }
 });
 
@@ -833,17 +767,17 @@ bookingRoutes.patch('/:id', async (c) => {
 
     if (error) {
       if (error.code === 'PGRST116') {
-        return errors.notFound(c, 'Booking not found');
+        return errors(c, 'Booking not found', 404);
       }
-      return errors.internalError(c, error.message);
+      return errors(c, error.message, 500);
     }
 
     return success(c, booking);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return errors.validationError(c, error.errors);
+      return errors(c, 'Validation error', 400, error.errors);
     }
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to update booking');
+    return errors(c, error instanceof Error ? error.message : 'Failed to update booking', 500);
   }
 });
 
@@ -871,16 +805,16 @@ bookingRoutes.post('/:id/cancel', async (c) => {
       .single();
 
     if (fetchError || !booking) {
-      return errors.notFound(c, 'Booking not found');
+      return errors(c, 'Booking not found', 404);
     }
 
     // Check if booking can be cancelled
     if (booking.status === 'cancelled') {
-      return errors.badRequest(c, 'Booking is already cancelled');
+      return errors(c, 'Booking is already cancelled', 400);
     }
 
     if (booking.status === 'completed') {
-      return errors.badRequest(c, 'Cannot cancel a completed booking');
+      return errors(c, 'Cannot cancel a completed booking', 400);
     }
 
     // Calculate refund amount (full refund for now)
@@ -903,15 +837,15 @@ bookingRoutes.post('/:id/cancel', async (c) => {
       .single();
 
     if (updateError) {
-      return errors.internalError(c, updateError.message);
+      return errors(c, updateError.message, 500);
     }
 
     return success(c, updatedBooking);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return errors.validationError(c, error.errors);
+      return errors(c, 'Validation error', 400, error.errors);
     }
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to cancel booking');
+    return errors(c, error instanceof Error ? error.message : 'Failed to cancel booking', 500);
   }
 });
 
@@ -925,7 +859,7 @@ bookingRoutes.get('/availability', async (c) => {
     const availableOnly = c.req.query('availableOnly') === 'true';
 
     if (!startDate || !endDate) {
-      return errors.badRequest(c, 'startDate and endDate are required');
+      return errors(c, 'startDate and endDate are required', 400);
     }
 
     const supabase = getAdminClient();
@@ -948,12 +882,12 @@ bookingRoutes.get('/availability', async (c) => {
     const { data: slots, error } = await query;
 
     if (error) {
-      return errors.internalError(c, error.message);
+      return errors(c, error.message, 500);
     }
 
     return success(c, { slots: slots || [] });
   } catch (error) {
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to get availability');
+    return errors(c, error instanceof Error ? error.message : 'Failed to get availability', 500);
   }
 });
 
@@ -989,15 +923,15 @@ bookingRoutes.post('/availability', async (c) => {
       .single();
 
     if (error) {
-      return errors.internalError(c, error.message);
+      return errors(c, error.message, 500);
     }
 
     return created(c, slot);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return errors.validationError(c, error.errors);
+      return errors(c, 'Validation error', 400, error.errors);
     }
-    return errors.internalError(c, error instanceof Error ? error.message : 'Failed to create availability slot');
+    return errors(c, error instanceof Error ? error.message : 'Failed to create availability slot', 500);
   }
 });
 
