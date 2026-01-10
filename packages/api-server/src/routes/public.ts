@@ -46,59 +46,94 @@ const listQuerySchema = z.object({
  * Get published listings (for portal browse/search)
  */
 publicRoutes.get('/listings', async (c) => {
-  const query = listQuerySchema.parse(c.req.query());
-  const supabase = getAdminClient();
+  // #region agent log
+  fetch('http://127.0.0.1:7248/ingest/eed908bc-e684-48e5-ad88-bbd7eba2f91e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'public.ts:48',message:'GET /listings endpoint called',data:{query:c.req.query()},timestamp:Date.now(),sessionId:'debug-session',runId:'runtime',hypothesisId:'A,B,C,D,E'})}).catch(()=>{});
+  // #endregion
+  
+  try {
+    const query = listQuerySchema.parse(c.req.query());
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7248/ingest/eed908bc-e684-48e5-ad88-bbd7eba2f91e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'public.ts:52',message:'Getting admin client',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'runtime',hypothesisId:'B,D'})}).catch(()=>{});
+    // #endregion
+    
+    const supabase = getAdminClient();
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7248/ingest/eed908bc-e684-48e5-ad88-bbd7eba2f91e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'public.ts:55',message:'Admin client obtained, building query',data:{page:query.page,limit:query.limit},timestamp:Date.now(),sessionId:'debug-session',runId:'runtime',hypothesisId:'E'})}).catch(()=>{});
+    // #endregion
 
-  let selectFields = '*';
-  if (query.fields) {
-    // Allow limiting fields for SSG (e.g., fields=id,slug,title)
-    selectFields = query.fields;
+    let selectFields = '*';
+    if (query.fields) {
+      // Allow limiting fields for SSG (e.g., fields=id,slug,title)
+      selectFields = query.fields;
+    }
+
+    let dbQuery = supabase
+      .from('listings')
+      .select(selectFields, { count: 'exact' })
+      .eq('status', 'published')
+      .lte('published_at', new Date().toISOString())
+      .order(query.sortBy, { ascending: query.sortOrder === 'asc' })
+      .range((query.page - 1) * query.limit, query.page * query.limit - 1);
+
+    if (query.search) {
+      const escapedSearch = escapeSearchQuery(query.search);
+      dbQuery = dbQuery.or(
+        `title.ilike.%${escapedSearch}%,description.ilike.%${escapedSearch}%`
+      );
+    }
+
+    if (query.category) {
+      dbQuery = dbQuery.eq('category', query.category);
+    }
+
+    if (query.minPrice !== undefined) {
+      dbQuery = dbQuery.gte('price', query.minPrice);
+    }
+
+    if (query.maxPrice !== undefined) {
+      dbQuery = dbQuery.lte('price', query.maxPrice);
+    }
+
+    if (query.featured) {
+      dbQuery = dbQuery.eq('featured', true);
+    }
+
+    // Location search (simple city/state match)
+    if (query.location) {
+      const escapedLocation = escapeSearchQuery(query.location);
+      dbQuery = dbQuery.or(
+        `address->city.ilike.%${escapedLocation}%,address->region.ilike.%${escapedLocation}%`
+      );
+    }
+
+    // #region agent log
+    fetch('http://127.0.0.1:7248/ingest/eed908bc-e684-48e5-ad88-bbd7eba2f91e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'public.ts:97',message:'Executing database query',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'runtime',hypothesisId:'E'})}).catch(()=>{});
+    // #endregion
+    
+    const { data, error, count } = await dbQuery;
+    
+  // #region agent log
+  console.log('[DEBUG] Query result:', {hasError:!!error,errorCode:error?.code,errorMessage:error?.message,dataLength:data?.length||0,count:count||0});
+  fetch('http://127.0.0.1:7248/ingest/eed908bc-e684-48e5-ad88-bbd7eba2f91e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'public.ts:100',message:'Query result received',data:{hasError:!!error,errorCode:error?.code,errorMessage:error?.message,dataLength:data?.length||0,count:count||0},timestamp:Date.now(),sessionId:'debug-session',runId:'runtime',hypothesisId:'E'})}).catch(()=>{});
+  // #endregion
+
+    if (error) {
+    // #region agent log
+    console.error('[DEBUG] Database query error:', {code:error.code,message:error.message,details:error.details,hint:error.hint});
+    fetch('http://127.0.0.1:7248/ingest/eed908bc-e684-48e5-ad88-bbd7eba2f91e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'public.ts:103',message:'Database query error',data:{code:error.code,message:error.message,details:error.details,hint:error.hint},timestamp:Date.now(),sessionId:'debug-session',runId:'runtime',hypothesisId:'E'})}).catch(()=>{});
+    // #endregion
+      throw error;
+    }
+
+    return paginated(c, data || [], query.page, query.limit, count || 0);
+  } catch (err) {
+    // #region agent log
+    fetch('http://127.0.0.1:7248/ingest/eed908bc-e684-48e5-ad88-bbd7eba2f91e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'public.ts:108',message:'Exception in /listings endpoint',data:{error:err instanceof Error?err.message:String(err),stack:err instanceof Error?err.stack:undefined},timestamp:Date.now(),sessionId:'debug-session',runId:'runtime',hypothesisId:'A,B,C,D,E'})}).catch(()=>{});
+    // #endregion
+    throw err;
   }
-
-  let dbQuery = supabase
-    .from('listings')
-    .select(selectFields, { count: 'exact' })
-    .eq('status', 'published')
-    .lte('published_at', new Date().toISOString())
-    .order(query.sortBy, { ascending: query.sortOrder === 'asc' })
-    .range((query.page - 1) * query.limit, query.page * query.limit - 1);
-
-  if (query.search) {
-    const escapedSearch = escapeSearchQuery(query.search);
-    dbQuery = dbQuery.or(
-      `title.ilike.%${escapedSearch}%,description.ilike.%${escapedSearch}%`
-    );
-  }
-
-  if (query.category) {
-    dbQuery = dbQuery.eq('category', query.category);
-  }
-
-  if (query.minPrice !== undefined) {
-    dbQuery = dbQuery.gte('price', query.minPrice);
-  }
-
-  if (query.maxPrice !== undefined) {
-    dbQuery = dbQuery.lte('price', query.maxPrice);
-  }
-
-  if (query.featured) {
-    dbQuery = dbQuery.eq('featured', true);
-  }
-
-  // Location search (simple city/state match)
-  if (query.location) {
-    const escapedLocation = escapeSearchQuery(query.location);
-    dbQuery = dbQuery.or(
-      `address->city.ilike.%${escapedLocation}%,address->region.ilike.%${escapedLocation}%`
-    );
-  }
-
-  const { data, error, count } = await dbQuery;
-
-  if (error) throw error;
-
-  return paginated(c, data || [], query.page, query.limit, count || 0);
 });
 
 /**

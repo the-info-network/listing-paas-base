@@ -65,6 +65,31 @@ app.get('/health', (c) => c.json({
   timestamp: new Date().toISOString(),
 }));
 
+// Diagnostic endpoint (for debugging env vars without exposing secrets)
+app.get('/api/diagnostic', (c) => {
+  const hasSupabaseUrl = !!process.env.SUPABASE_URL;
+  const hasServiceKey = !!process.env.SUPABASE_SERVICE_KEY;
+  const hasAnonKey = !!process.env.SUPABASE_ANON_KEY;
+  const hasServiceRoleKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY; // Check alternate name
+  
+  // #region agent log
+  fetch('http://127.0.0.1:7248/ingest/eed908bc-e684-48e5-ad88-bbd7eba2f91e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.ts:67',message:'Diagnostic endpoint called',data:{hasSupabaseUrl,hasServiceKey,hasAnonKey,hasServiceRoleKey},timestamp:Date.now(),sessionId:'debug-session',runId:'runtime',hypothesisId:'A,B,C,D'})}).catch(()=>{});
+  // #endregion
+  
+  return c.json({
+    env: {
+      hasSupabaseUrl,
+      hasServiceKey,
+      hasAnonKey,
+      hasServiceRoleKey, // Alternate name check
+      supabaseUrlPrefix: process.env.SUPABASE_URL?.substring(0, 30) || 'missing',
+      serviceKeyLength: process.env.SUPABASE_SERVICE_KEY?.length || 0,
+      serviceRoleKeyLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length || 0,
+    },
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // ============================================================================
 // Public Routes (no auth required)
 // ============================================================================
