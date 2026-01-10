@@ -14,8 +14,12 @@ export interface FeaturedAccount {
   created_at: string;
 }
 
-// CUSTOMIZE: Update API_URL to match your deployment
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+import { createClient } from '@supabase/supabase-js';
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /**
  * Fetch featured accounts/tenants
@@ -23,27 +27,19 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
  */
 export async function getFeaturedAccounts(limit: number = 4): Promise<FeaturedAccount[]> {
   try {
-    const response = await fetch(`${API_URL}/api/public/accounts/featured?limit=${limit}`, {
-      next: { revalidate: 300 }, // ISR: Revalidate every 5 minutes
-    });
+    const { data, error } = await supabase
+      .from('tenants')
+      .select('id, name, domain, avatar_url, plan, created_at, description')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(limit);
 
-    if (!response.ok) {
-      if (response.status === 404) return [];
-      console.error(`Failed to fetch accounts: ${response.statusText}`);
+    if (error) {
+      console.error('Failed to fetch accounts from Supabase:', error.message);
       return [];
     }
 
-    const result = await response.json();
-
-    // Handle both { success: true, data: [...] } and direct array responses
-    const raw = Array.isArray(result?.data)
-      ? result.data
-      : Array.isArray(result)
-        ? result
-        : [];
-
-    // Map to FeaturedAccount format
-    return raw.map((account: FeaturedAccount) => ({
+    return (data || []).map((account) => ({
       id: account.id,
       name: account.name,
       domain: account.domain,
