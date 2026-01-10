@@ -3,7 +3,8 @@
 
 // Import the app from the compiled output
 // Vercel includes the dist folder in the deployment
-import app from '../dist/index';
+// Use .js extension for ESM imports
+import app from '../dist/index.js';
 
 // Wrap app.fetch in a handler for Vercel
 // Vercel expects a default export that handles Request -> Response
