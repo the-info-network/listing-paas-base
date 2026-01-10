@@ -1,9 +1,9 @@
 // Vercel serverless function for API Server
-// Re-exports the Hono app from src/index.ts as a serverless function handler
+// Re-exports the Hono app from dist/index.js as a serverless function handler
 
-// Import the app from the main entry point
-// This ensures all routes and middleware are properly configured
-import app from '../src/index';
+// Import the app from the compiled output
+// Vercel includes the dist folder in the deployment
+import app from '../dist/index';
 
 // Wrap app.fetch in a handler for Vercel
 // Vercel expects a default export that handles Request -> Response
