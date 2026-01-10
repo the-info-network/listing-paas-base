@@ -27,6 +27,15 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'cdn.yourplatform.com',
       },
+      // Builder.io images
+      {
+        protocol: 'https',
+        hostname: 'cdn.builder.io',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.builder.io',
+      },
       // Add more patterns as needed for your CDN
       ...(process.env.NEXT_PUBLIC_CDN_URL
         ? [
@@ -43,16 +52,19 @@ const nextConfig: NextConfig = {
   compress: true,
   
   // Output configuration for static export (optional)
-  output: 'standalone',
+  // Note: 'standalone' is for production builds only, not dev mode
+  // output: 'standalone',
   
   // Bundle optimization for consumer portal
-  experimental: {
-    optimizePackageImports: [
-      "@tinadmin/core",
-      "@tinadmin/ui-consumer",
-      "@heroicons/react",
-    ],
-  },
+  // Temporarily disabled due to Next.js 15.5.9 bug: expandNextJsTemplate is not a function
+  // experimental: {
+  //   optimizePackageImports: [
+  //     "@tinadmin/core",
+  //     "@tinadmin/ui-consumer",
+  //     "@heroicons/react",
+  //     "@builder.io/react",
+  //   ],
+  // },
   
   // Webpack configuration
   webpack(config, { isServer }) {

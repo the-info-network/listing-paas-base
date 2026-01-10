@@ -29,7 +29,7 @@ export async function getFeaturedAccounts(limit: number = 4): Promise<FeaturedAc
   try {
     const { data, error } = await supabase
       .from('tenants')
-      .select('id, name, domain, avatar_url, plan, created_at, description')
+      .select('id, name, domain, avatar_url, plan, created_at')
       .eq('status', 'active')
       .order('created_at', { ascending: false })
       .limit(limit);
@@ -43,7 +43,7 @@ export async function getFeaturedAccounts(limit: number = 4): Promise<FeaturedAc
       id: account.id,
       name: account.name,
       domain: account.domain,
-      description: account.description || `${account.name} - Quality services you can trust`,
+      description: `${account.name} - Quality services you can trust`,
       plan: account.plan || 'starter',
       avatar_url: account.avatar_url,
       created_at: account.created_at || new Date().toISOString(),

@@ -17,6 +17,17 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzd
 SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
 ```
 
+### Builder.io Configuration (Optional)
+
+```
+NEXT_PUBLIC_BUILDER_API_KEY=<your-builder-api-key>
+NEXT_PUBLIC_BUILDER_SPACE_ID=<your-builder-space-id>
+NEXT_PUBLIC_BUILDER_ENVIRONMENT=production
+BUILDER_PREVIEW=false
+```
+
+**Note:** Get your Builder.io API key from https://builder.io/account/space
+
 ### Optional Environment Variables
 
 ```
