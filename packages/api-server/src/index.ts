@@ -67,13 +67,34 @@ app.get('/health', (c) => c.json({
 
 // Diagnostic endpoint (for debugging env vars without exposing secrets)
 app.get('/api/diagnostic', (c) => {
-  const hasSupabaseUrl = !!process.env.SUPABASE_URL;
-  const hasServiceKey = !!process.env.SUPABASE_SERVICE_KEY;
-  const hasAnonKey = !!process.env.SUPABASE_ANON_KEY;
-  const hasServiceRoleKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY; // Check alternate name
+  const supabaseUrlRaw = process.env.SUPABASE_URL;
+  const supabaseServiceKeyRaw = process.env.SUPABASE_SERVICE_KEY;
+  const supabaseAnonKeyRaw = process.env.SUPABASE_ANON_KEY;
+  const supabaseServiceRoleKeyRaw = process.env.SUPABASE_SERVICE_ROLE_KEY; // Check alternate name
+  
+  const hasSupabaseUrl = !!supabaseUrlRaw;
+  const hasServiceKey = !!supabaseServiceKeyRaw;
+  const hasAnonKey = !!supabaseAnonKeyRaw;
+  const hasServiceRoleKey = !!supabaseServiceRoleKeyRaw;
+  
+  // Check for trailing whitespace/newlines
+  const urlHasTrailingWhitespace = supabaseUrlRaw && (supabaseUrlRaw !== supabaseUrlRaw.trim());
+  const serviceKeyHasTrailingWhitespace = supabaseServiceKeyRaw && (supabaseServiceKeyRaw !== supabaseServiceKeyRaw.trim());
+  const anonKeyHasTrailingWhitespace = supabaseAnonKeyRaw && (supabaseAnonKeyRaw !== supabaseAnonKeyRaw.trim());
+  const serviceRoleKeyHasTrailingWhitespace = supabaseServiceRoleKeyRaw && (supabaseServiceRoleKeyRaw !== supabaseServiceRoleKeyRaw.trim());
   
   // #region agent log
-  fetch('http://127.0.0.1:7248/ingest/eed908bc-e684-48e5-ad88-bbd7eba2f91e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.ts:67',message:'Diagnostic endpoint called',data:{hasSupabaseUrl,hasServiceKey,hasAnonKey,hasServiceRoleKey},timestamp:Date.now(),sessionId:'debug-session',runId:'runtime',hypothesisId:'A,B,C,D'})}).catch(()=>{});
+  console.log('[DEBUG] Diagnostic endpoint called:', {
+    hasSupabaseUrl,
+    hasServiceKey,
+    hasAnonKey,
+    hasServiceRoleKey,
+    urlHasTrailingWhitespace,
+    serviceKeyHasTrailingWhitespace,
+    anonKeyHasTrailingWhitespace,
+    serviceRoleKeyHasTrailingWhitespace
+  });
+  fetch('http://127.0.0.1:7248/ingest/eed908bc-e684-48e5-ad88-bbd7eba2f91e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'index.ts:67',message:'Diagnostic endpoint called',data:{hasSupabaseUrl,hasServiceKey,hasAnonKey,hasServiceRoleKey,urlHasTrailingWhitespace,serviceKeyHasTrailingWhitespace,anonKeyHasTrailingWhitespace,serviceRoleKeyHasTrailingWhitespace},timestamp:Date.now(),sessionId:'debug-session',runId:'runtime',hypothesisId:'A,B,C,D'})}).catch(()=>{});
   // #endregion
   
   return c.json({
@@ -82,9 +103,18 @@ app.get('/api/diagnostic', (c) => {
       hasServiceKey,
       hasAnonKey,
       hasServiceRoleKey, // Alternate name check
-      supabaseUrlPrefix: process.env.SUPABASE_URL?.substring(0, 30) || 'missing',
-      serviceKeyLength: process.env.SUPABASE_SERVICE_KEY?.length || 0,
-      serviceRoleKeyLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length || 0,
+      supabaseUrlPrefix: supabaseUrlRaw?.substring(0, 30) || 'missing',
+      serviceKeyLength: supabaseServiceKeyRaw?.length || 0,
+      serviceRoleKeyLength: supabaseServiceRoleKeyRaw?.length || 0,
+      anonKeyLength: supabaseAnonKeyRaw?.length || 0,
+      // Whitespace detection
+      urlHasTrailingWhitespace,
+      serviceKeyHasTrailingWhitespace,
+      anonKeyHasTrailingWhitespace,
+      serviceRoleKeyHasTrailingWhitespace,
+      // Last characters (to see newlines/spaces)
+      urlLastChars: supabaseUrlRaw ? JSON.stringify(supabaseUrlRaw.slice(-10)) : null,
+      serviceKeyLastChars: supabaseServiceKeyRaw ? JSON.stringify(supabaseServiceKeyRaw.slice(-10)) : null,
     },
     timestamp: new Date().toISOString(),
   });

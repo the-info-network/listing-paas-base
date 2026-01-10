@@ -1,13 +1,47 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Environment variables
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+// Environment variables - trim whitespace/newlines
+const supabaseUrlRaw = process.env.SUPABASE_URL;
+const supabaseServiceKeyRaw = process.env.SUPABASE_SERVICE_KEY;
+const supabaseAnonKeyRaw = process.env.SUPABASE_ANON_KEY;
 
 // #region agent log
-console.log('[DEBUG] Env vars check:', {hasSupabaseUrl:!!supabaseUrl,hasServiceKey:!!supabaseServiceKey,hasAnonKey:!!supabaseAnonKey,serviceKeyLength:supabaseServiceKey?.length||0,urlPrefix:supabaseUrl?.substring(0,20)||'missing'});
-fetch('http://127.0.0.1:7248/ingest/eed908bc-e684-48e5-ad88-bbd7eba2f91e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'supabase.ts:7',message:'Env vars check',data:{hasSupabaseUrl:!!supabaseUrl,hasServiceKey:!!supabaseServiceKey,hasAnonKey:!!supabaseAnonKey,serviceKeyLength:supabaseServiceKey?.length||0,urlPrefix:supabaseUrl?.substring(0,20)||'missing'},timestamp:Date.now(),sessionId:'debug-session',runId:'init',hypothesisId:'A,B,C,D'})}).catch(()=>{});
+const urlHasTrailingWhitespace = supabaseUrlRaw && (supabaseUrlRaw !== supabaseUrlRaw.trim());
+const serviceKeyHasTrailingWhitespace = supabaseServiceKeyRaw && (supabaseServiceKeyRaw !== supabaseServiceKeyRaw.trim());
+const anonKeyHasTrailingWhitespace = supabaseAnonKeyRaw && (supabaseAnonKeyRaw !== supabaseAnonKeyRaw.trim());
+console.log('[DEBUG] Env vars check (raw):', {
+  hasSupabaseUrl: !!supabaseUrlRaw,
+  hasServiceKey: !!supabaseServiceKeyRaw,
+  hasAnonKey: !!supabaseAnonKeyRaw,
+  urlLength: supabaseUrlRaw?.length || 0,
+  serviceKeyLength: supabaseServiceKeyRaw?.length || 0,
+  anonKeyLength: supabaseAnonKeyRaw?.length || 0,
+  urlHasTrailingWhitespace,
+  serviceKeyHasTrailingWhitespace,
+  anonKeyHasTrailingWhitespace,
+  urlLastChar: supabaseUrlRaw ? JSON.stringify(supabaseUrlRaw.slice(-5)) : 'missing',
+  serviceKeyLastChar: supabaseServiceKeyRaw ? JSON.stringify(supabaseServiceKeyRaw.slice(-5)) : 'missing',
+  urlPrefix: supabaseUrlRaw?.substring(0, 30) || 'missing'
+});
+fetch('http://127.0.0.1:7248/ingest/eed908bc-e684-48e5-ad88-bbd7eba2f91e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'supabase.ts:10',message:'Env vars check (raw)',data:{hasSupabaseUrl:!!supabaseUrlRaw,hasServiceKey:!!supabaseServiceKeyRaw,hasAnonKey:!!supabaseAnonKeyRaw,urlLength:supabaseUrlRaw?.length||0,serviceKeyLength:supabaseServiceKeyRaw?.length||0,anonKeyLength:supabaseAnonKeyRaw?.length||0,urlHasTrailingWhitespace,serviceKeyHasTrailingWhitespace,anonKeyHasTrailingWhitespace,urlLastChar:supabaseUrlRaw?JSON.stringify(supabaseUrlRaw.slice(-5)):'missing',serviceKeyLastChar:supabaseServiceKeyRaw?JSON.stringify(supabaseServiceKeyRaw.slice(-5)):'missing',urlPrefix:supabaseUrlRaw?.substring(0,30)||'missing'},timestamp:Date.now(),sessionId:'debug-session',runId:'init',hypothesisId:'A,B,C,D'})}).catch(()=>{});
+// #endregion
+
+// Trim whitespace and newlines from env vars
+const supabaseUrl = supabaseUrlRaw?.trim();
+const supabaseServiceKey = supabaseServiceKeyRaw?.trim();
+const supabaseAnonKey = supabaseAnonKeyRaw?.trim();
+
+// #region agent log
+console.log('[DEBUG] Env vars check (trimmed):', {
+  hasSupabaseUrl: !!supabaseUrl,
+  hasServiceKey: !!supabaseServiceKey,
+  hasAnonKey: !!supabaseAnonKey,
+  urlLength: supabaseUrl?.length || 0,
+  serviceKeyLength: supabaseServiceKey?.length || 0,
+  anonKeyLength: supabaseAnonKey?.length || 0,
+  urlPrefix: supabaseUrl?.substring(0, 30) || 'missing'
+});
+fetch('http://127.0.0.1:7248/ingest/eed908bc-e684-48e5-ad88-bbd7eba2f91e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'supabase.ts:25',message:'Env vars check (trimmed)',data:{hasSupabaseUrl:!!supabaseUrl,hasServiceKey:!!supabaseServiceKey,hasAnonKey:!!supabaseAnonKey,urlLength:supabaseUrl?.length||0,serviceKeyLength:supabaseServiceKey?.length||0,anonKeyLength:supabaseAnonKey?.length||0,urlPrefix:supabaseUrl?.substring(0,30)||'missing'},timestamp:Date.now(),sessionId:'debug-session',runId:'init',hypothesisId:'A,B,C,D'})}).catch(()=>{});
 // #endregion
 
 if (!supabaseUrl) {
