@@ -1,33 +1,57 @@
 // Vercel serverless function for API Server
-// Re-exports the Hono app from dist/index.js as a serverless function handler
+// Standalone handler that recreates the app structure
 
-// Import the app from the compiled output
-// Vercel includes the dist folder in the deployment
-// Use .js extension for ESM imports
-import app from '../dist/index.js';
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import { logger } from 'hono/logger';
 
-// Wrap app.fetch in a handler for Vercel
-// Vercel expects a default export that handles Request -> Response
-const handler = async (req: Request): Promise<Response> => {
-  try {
-    return await app.fetch(req);
-  } catch (error) {
-    console.error('[FATAL] Unhandled error in Vercel handler:', error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: {
-          code: 'INTERNAL_ERROR',
-          message: error instanceof Error ? error.message : 'An unexpected error occurred',
-        },
-      }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
-  }
-};
+// Import routes directly - Vercel will compile TypeScript
+// Using relative paths from api/ to src/
+import { publicRoutes } from '../src/routes/public';
+import { authRoutes } from '../src/routes/auth';
+import { errorHandler } from '../src/middleware/error-handler';
 
-// Export for Vercel serverless function
-export default handler;
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['*'];
+
+const app = new Hono();
+
+// Middleware
+app.use('*', logger());
+app.use('*', cors({
+  origin: allowedOrigins,
+  allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-Tenant-ID'],
+}));
+
+// Root path
+app.get('/', (c) => {
+  return c.json({
+    service: 'pawpointers-api-server',
+    version: '1.0.0',
+    status: 'ok',
+    endpoints: {
+      health: '/health',
+      auth: '/api/auth',
+      public: '/api/public',
+    },
+  });
+});
+
+// Health check
+app.get('/health', (c) => {
+  return c.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    service: 'api-server',
+  });
+});
+
+// Public routes
+app.route('/api/public', publicRoutes);
+app.route('/api/auth', authRoutes);
+
+// Error handler
+app.onError(errorHandler);
+
+// Export handler for Vercel
+export default app.fetch;
