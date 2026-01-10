@@ -3,7 +3,9 @@ import Link from "next/link";
 import { Header, Footer } from "@/components/layout";
 import { SearchBar } from "@/components/search";
 import { ListingCard } from "@/components/listings";
+import { AccountCard } from "@/components/accounts/AccountCard";
 import { getFeaturedListings, getCategories, type Listing } from "@/lib/listings";
+import { getFeaturedAccounts } from "@/lib/accounts";
 
 /**
  * Home Page / Landing Page
@@ -29,6 +31,7 @@ export default async function HomePage() {
   // Fetch featured listings for homepage
   let featuredListings: Listing[] = [];
   let categories: Array<{ slug: string; name: string; count: number }> = [];
+  let featuredAccounts = [];
   
   try {
     featuredListings = await getFeaturedListings(6);
@@ -41,6 +44,13 @@ export default async function HomePage() {
     categories = await getCategories();
   } catch (error) {
     console.error('Error fetching categories:', error);
+    // Return empty array on error - page will still render
+  }
+  
+  try {
+    featuredAccounts = await getFeaturedAccounts(4);
+  } catch (error) {
+    console.error('Error fetching featured accounts:', error);
     // Return empty array on error - page will still render
   }
 
@@ -196,6 +206,28 @@ export default async function HomePage() {
                       {cat.count} listings
                     </p>
                   </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Featured Accounts Showcase */}
+        {featuredAccounts.length > 0 && (
+          <section className="py-16 lg:py-24 bg-gray-50 dark:bg-gray-800">
+            <div className="container mx-auto px-4">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                  Featured Accounts
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                  Discover businesses and organizations using our platform.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {featuredAccounts.map((account) => (
+                  <AccountCard key={account.id} account={account} />
                 ))}
               </div>
             </div>

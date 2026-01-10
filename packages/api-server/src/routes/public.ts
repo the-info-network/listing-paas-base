@@ -185,24 +185,61 @@ publicRoutes.get('/featured', async (c) => {
  * Get all categories with listing counts
  */
 publicRoutes.get('/categories', async (c) => {
-  const supabase = getAdminClient();
+  try {
+    const supabase = getAdminClient();
 
-  // Get categories from taxonomy_terms table if it exists,
-  // otherwise aggregate from listings
-  const { data: taxonomyData } = await supabase
-    .from('taxonomy_terms')
-    .select('id, name, slug, parent_id')
-    .eq('taxonomy_type', 'category')
-    .order('name');
+    // Get categories from taxonomy_terms table if it exists,
+    // otherwise aggregate from listings
+    const { data: taxonomyData, error: taxonomyError } = await supabase
+      .from('taxonomy_terms')
+      .select('id, name, slug, parent_id')
+      .eq('taxonomy_type', 'category')
+      .order('name');
 
-  if (taxonomyData && taxonomyData.length > 0) {
+    // If taxonomy_terms table doesn't exist or has no data, try fallback
+    if (taxonomyError || !taxonomyData || taxonomyData.length === 0) {
+      console.log('Taxonomy terms not found, trying fallback from listings');
+      
+      // Fallback: aggregate categories from listings
+      const { data: listings, error: listingsError } = await supabase
+        .from('listings')
+        .select('category')
+        .eq('status', 'published')
+        .not('category', 'is', null);
+
+      if (listingsError) {
+        console.error('Error fetching listings for categories:', listingsError);
+        // Return empty array instead of throwing error
+        return success(c, []);
+      }
+
+      const categoryCounts: Record<string, number> = {};
+      listings?.forEach((l: { category: string | null }) => {
+        if (l.category) {
+          categoryCounts[l.category] = (categoryCounts[l.category] || 0) + 1;
+        }
+      });
+
+      const categories = Object.entries(categoryCounts).map(([name, count]) => ({
+        slug: name.toLowerCase().replace(/\s+/g, '-'),
+        name,
+        count,
+      }));
+
+      return success(c, categories);
+    }
+
     // Get counts for each category
     const categoriesWithCounts = await Promise.all(
       taxonomyData.map(async (cat: { id: string; name: string; slug: string; parent_id: string | null }) => {
-        const { count } = await supabase
+        const { count, error: countError } = await supabase
           .from('listing_taxonomies')
           .select('*', { count: 'exact', head: true })
           .eq('taxonomy_term_id', cat.id);
+
+        if (countError) {
+          console.warn(`Error getting count for category ${cat.id}:`, countError);
+        }
 
         return {
           ...cat,
@@ -212,29 +249,11 @@ publicRoutes.get('/categories', async (c) => {
     );
 
     return success(c, categoriesWithCounts);
+  } catch (error) {
+    console.error('Error in /categories endpoint:', error);
+    // Return empty array instead of throwing error to prevent 500
+    return success(c, []);
   }
-
-  // Fallback: aggregate categories from listings
-  const { data: listings } = await supabase
-    .from('listings')
-    .select('category')
-    .eq('status', 'published')
-    .not('category', 'is', null);
-
-  const categoryCounts: Record<string, number> = {};
-  listings?.forEach((l: { category: string | null }) => {
-    if (l.category) {
-      categoryCounts[l.category] = (categoryCounts[l.category] || 0) + 1;
-    }
-  });
-
-  const categories = Object.entries(categoryCounts).map(([name, count]) => ({
-    slug: name.toLowerCase().replace(/\s+/g, '-'),
-    name,
-    count,
-  }));
-
-  return success(c, categories);
 });
 
 /**
@@ -505,4 +524,71 @@ publicRoutes.get('/knowledge-base/categories', async (c) => {
   }));
 
   return success(c, categories);
+});
+
+// ============================================================================
+// Public Accounts/Tenants Endpoints
+// ============================================================================
+
+/**
+ * GET /api/public/accounts/featured
+ * Get featured accounts/tenants for portal showcase
+ */
+publicRoutes.get('/accounts/featured', async (c) => {
+  const limit = Number(c.req.query('limit')) || 4;
+  const supabase = getAdminClient();
+
+  try {
+    // Get active tenants with their first user (for description/avatar)
+    const { data: tenants, error } = await supabase
+      .from('tenants')
+      .select(`
+        id,
+        name,
+        domain,
+        plan,
+        avatar_url,
+        created_at,
+        status
+      `)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching featured accounts:', error);
+      return success(c, []);
+    }
+
+    // Get user info for each tenant to add descriptions
+    const accountsWithUsers = await Promise.all(
+      (tenants || []).map(async (tenant) => {
+        // Get the first user for this tenant
+        const { data: user } = await supabase
+          .from('users')
+          .select('full_name, email')
+          .eq('tenant_id', tenant.id)
+          .eq('status', 'active')
+          .limit(1)
+          .single();
+
+        return {
+          id: tenant.id,
+          name: tenant.name,
+          domain: tenant.domain,
+          plan: tenant.plan,
+          avatar_url: tenant.avatar_url,
+          created_at: tenant.created_at,
+          description: user?.full_name 
+            ? `${user.full_name}'s ${tenant.name}` 
+            : `${tenant.name} - Quality services you can trust`,
+        };
+      })
+    );
+
+    return success(c, accountsWithUsers);
+  } catch (error) {
+    console.error('Error in /accounts/featured endpoint:', error);
+    return success(c, []);
+  }
 });
