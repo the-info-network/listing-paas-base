@@ -5,11 +5,11 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 
-// Import compiled routes from dist directory
-// Note: Vercel will compile this file, so we import from dist
-import { authRoutes } from '../dist/routes/auth';
-import { publicRoutes } from '../dist/routes/public';
-import { errorHandler } from '../dist/middleware/error-handler';
+// Import routes from src directory
+// Vercel will compile TypeScript, so we can import from src
+import { authRoutes } from '../src/routes/auth';
+import { publicRoutes } from '../src/routes/public';
+import { errorHandler } from '../src/middleware/error-handler';
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['*'];
 
