@@ -15,9 +15,64 @@ env:
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 jobs:
+  detect-changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    outputs:
+      portal: ${{ steps.filter.outputs.portal }}
+      admin: ${{ steps.filter.outputs.admin }}
+      dashboard: ${{ steps.filter.outputs.dashboard }}
+      api: ${{ steps.filter.outputs.api }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Path filter
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            portal:
+              - 'apps/portal/**'
+              - 'packages/@tinadmin/ui-consumer/**'
+              - 'packages/@tinadmin/core/**'
+              - 'packages/@tinadmin/config/**'
+              - 'config/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+            admin:
+              - 'apps/admin/**'
+              - 'packages/@tinadmin/ui-admin/**'
+              - 'packages/@tinadmin/core/**'
+              - 'packages/@tinadmin/config/**'
+              - 'config/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+            dashboard:
+              - 'apps/dashboard/**'
+              - 'packages/@tinadmin/core/**'
+              - 'packages/@tinadmin/config/**'
+              - 'config/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+            api:
+              - 'packages/api-server/**'
+              - 'packages/@tinadmin/core/**'
+              - 'packages/@tinadmin/config/**'
+              - 'packages/@listing-platform/**'
+              - 'config/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+
   deploy-admin:
     name: Deploy Admin App
     runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.admin == 'true'
     defaults:
       run:
         working-directory: apps/admin
@@ -54,6 +109,8 @@ jobs:
   deploy-portal:
     name: Deploy Portal App
     runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.portal == 'true'
     defaults:
       run:
         working-directory: apps/portal
@@ -90,6 +147,8 @@ jobs:
   deploy-dashboard:
     name: Deploy Dashboard App
     runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.dashboard == 'true'
     defaults:
       run:
         working-directory: apps/dashboard
@@ -126,6 +185,8 @@ jobs:
   deploy-api:
     name: Deploy API Server
     runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.api == 'true'
     defaults:
       run:
         working-directory: packages/api-server
