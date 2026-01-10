@@ -192,6 +192,7 @@ const port = parseInt(process.env.PORT || '8080', 10);
 console.log(`🚀 API Server starting on port ${port}`);
 console.log(`📍 Health check: http://localhost:${port}/health`);
 console.log(`🔒 CORS origins: ${allowedOrigins.join(', ')}`);
+console.log(`🔍 Diagnostic endpoint: http://localhost:${port}/api/diagnostic`);
 
 serve({
   fetch: app.fetch,
