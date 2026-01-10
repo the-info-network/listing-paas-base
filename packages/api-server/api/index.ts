@@ -6,10 +6,10 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 
 // Import routes directly - Vercel will compile TypeScript
-// Using relative paths from api/ to src/
-import { publicRoutes } from '../src/routes/public';
-import { authRoutes } from '../src/routes/auth';
-import { errorHandler } from '../src/middleware/error-handler';
+// Using relative paths from api/ to src/ with .js extensions for ESM
+import { publicRoutes } from '../src/routes/public.js';
+import { authRoutes } from '../src/routes/auth.js';
+import { errorHandler } from '../src/middleware/error-handler.js';
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['*'];
 
