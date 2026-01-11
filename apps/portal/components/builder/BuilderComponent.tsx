@@ -1,14 +1,32 @@
 'use client';
 
-import { builder, BuilderComponent as BuilderComponentRenderer } from '@builder.io/react';
 import { useEffect, useState } from 'react';
 import { builderConfig } from '@/builder.config';
-// Import component registration
-import '@/components/builder/register-components';
 
-// Initialize Builder.io SDK
-if (builderConfig.apiKey) {
-  builder.init(builderConfig.apiKey);
+// Safely import Builder.io with error handling
+let builder: any = null;
+let BuilderComponentRenderer: any = null;
+let importError: string | null = null;
+
+try {
+  const builderModule = require('@builder.io/react');
+  builder = builderModule.builder;
+  BuilderComponentRenderer = builderModule.BuilderComponent;
+
+  // Initialize Builder.io SDK
+  if (builderConfig.apiKey && builder) {
+    builder.init(builderConfig.apiKey);
+  }
+} catch (err) {
+  importError = '@builder.io/react module not available';
+  console.warn(importError);
+}
+
+// Import component registration
+try {
+  require('@/components/builder/register-components');
+} catch (err) {
+  console.warn('Component registration failed:', err);
 }
 
 /**
@@ -102,4 +120,3 @@ export function BuilderComponent({
     />
   );
 }
-
