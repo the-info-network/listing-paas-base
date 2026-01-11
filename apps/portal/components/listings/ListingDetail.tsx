@@ -113,7 +113,7 @@ export function ListingDetail({ listing }: ListingDetailProps) {
               {/* Basic Tier */}
               <div className="border-2 border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:border-orange-400 dark:hover:border-orange-600 transition-colors cursor-pointer">
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Basic</h3>
-                <div className="text-2xl font-bold text-warm-primary mb-3">{formatPrice(listing.price)}</div>
+                <div className="text-2xl font-bold text-warm-primary mb-3">{formatPrice(listing.price ?? 0)}</div>
                 <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li className="flex items-center gap-2">
                     <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 24 24">
@@ -136,7 +136,7 @@ export function ListingDetail({ listing }: ListingDetailProps) {
                   POPULAR
                 </div>
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-2 mt-2">Professional</h3>
-                <div className="text-2xl font-bold text-warm-primary mb-3">{formatPrice(Math.round(listing.price * 1.5))}</div>
+                <div className="text-2xl font-bold text-warm-primary mb-3">{formatPrice(Math.round((listing.price ?? 0) * 1.5))}</div>
                 <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li className="flex items-center gap-2">
                     <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 24 24">
@@ -162,7 +162,7 @@ export function ListingDetail({ listing }: ListingDetailProps) {
               {/* Premium Tier */}
               <div className="border-2 border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:border-cyan-400 dark:hover:border-cyan-600 transition-colors cursor-pointer">
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Premium</h3>
-                <div className="text-2xl font-bold text-accent-secondary mb-3">{formatPrice(Math.round(listing.price * 2.5))}</div>
+                <div className="text-2xl font-bold text-accent-secondary mb-3">{formatPrice(Math.round((listing.price ?? 0) * 2.5))}</div>
                 <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li className="flex items-center gap-2">
                     <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 24 24">
