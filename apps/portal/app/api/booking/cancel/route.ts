@@ -11,6 +11,9 @@ import { withRateLimit } from '@/middleware/api-rate-limit';
  * Rate Limiting: 10 requests per minute per IP
  */
 
+// Force dynamic rendering to prevent build-time execution
+export const dynamic = 'force-dynamic';
+
 const bookingProvider = new NotImplementedBookingProvider();
 
 async function handler(request: NextRequest) {
