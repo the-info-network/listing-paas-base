@@ -295,18 +295,18 @@ export async function markDocumentHelpful(id: string): Promise<boolean> {
     };
 
     const currentCount = doc.metadata?.helpful_count || 0;
-    const updateData = {
+    const updateData: Record<string, unknown> = {
       metadata: {
         ...doc.metadata,
         helpful_count: currentCount + 1,
       },
     };
     
-    // Use type assertion to bypass TypeScript inference issue
-    const { error } = await (supabase
+    // Use type assertion to bypass TypeScript inference issue with conditional supabase
+    const { error } = await (supabase as any)
       .from('knowledge_documents')
-      .update(updateData as any)
-      .eq('id', id) as Promise<{ error: Error | null }>);
+      .update(updateData)
+      .eq('id', id);
 
     if (error) throw error;
     return true;
