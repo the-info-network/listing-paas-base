@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 import { getBuilderContent } from '@/lib/builder';
 import { builderConfig } from '@/builder.config';
 
 // Dynamically import BuilderComponent to prevent build-time errors
-const BuilderComponent = dynamic(
+const BuilderComponent = dynamicImport(
   () => import('@/components/builder/BuilderComponent').then(mod => ({ default: mod.BuilderComponent })),
   { ssr: false }
 );
