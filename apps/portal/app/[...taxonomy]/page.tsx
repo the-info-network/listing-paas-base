@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { BuilderComponent } from '@/components/builder/BuilderComponent';
+import { getBuilderContent } from '@/lib/builder';
+import { builderConfig } from '@/builder.config';
 import { Header, Footer } from "@/components/layout";
 import { TaxonomyBreadcrumb } from "@/components/taxonomy/TaxonomyBreadcrumb";
 import { TaxonomyListing } from "@/components/taxonomy/TaxonomyListing";
@@ -13,20 +16,23 @@ import {
 import { getTaxonomyConfig, parseTaxonomyPath, generateSEOMetadata } from "@/lib/taxonomy-config";
 
 /**
- * Dynamic Taxonomy Routing
+ * Combined Catch-All Route
  * 
- * Handles all taxonomy-based URLs:
+ * Handles both Builder.io pages and taxonomy-based URLs:
+ * 
+ * Route priority:
+ * 1. Builder.io content (if exists and API key configured)
+ * 2. Taxonomy routes (existing functionality)
+ * 
+ * Taxonomy URLs:
  * - Industry: /{profession}/{slug} (e.g., /lawyers/john-doe-law)
  * - Location: /{country}/{region}/{city}/{slug} (e.g., /usa/california/sf/property-123)
  * - Hybrid: /{category}/{location}/{slug} (e.g., /water-sports/miami/jet-ski-rental)
- * 
- * This page determines whether to render:
- * 1. A category/taxonomy term page (list of listings)
- * 2. A single listing detail page
  */
 
 interface TaxonomyPageProps {
   params: Promise<{ taxonomy: string[] }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 // ISR Configuration - revalidate every 60 seconds
@@ -37,8 +43,27 @@ export const revalidate = 60;
  */
 export async function generateMetadata({
   params,
+  searchParams,
 }: TaxonomyPageProps): Promise<Metadata> {
   const { taxonomy } = await params;
+  const resolvedSearchParams = await searchParams;
+  const path = '/' + taxonomy.join('/');
+
+  // Check Builder.io first if API key is configured
+  if (builderConfig.apiKey) {
+    const builderContent = await getBuilderContent(path, {
+      preview: builderConfig.preview || resolvedSearchParams.preview === 'true',
+    });
+
+    if (builderContent) {
+      return {
+        title: builderContent.data?.title || 'Builder.io Page',
+        description: builderContent.data?.description || '',
+      };
+    }
+  }
+
+  // Fall back to taxonomy metadata
   const config = await getTaxonomyConfig();
   const parsedPath = parseTaxonomyPath(taxonomy, config);
   
@@ -85,8 +110,31 @@ export async function generateStaticParams() {
   }
 }
 
-export default async function TaxonomyPage({ params }: TaxonomyPageProps) {
+export default async function TaxonomyPage({ params, searchParams }: TaxonomyPageProps) {
   const { taxonomy } = await params;
+  const resolvedSearchParams = await searchParams;
+  const path = '/' + taxonomy.join('/');
+
+  // Priority 1: Check Builder.io first (if API key is configured)
+  if (builderConfig.apiKey) {
+    const builderContent = await getBuilderContent(path, {
+      preview: builderConfig.preview || resolvedSearchParams.preview === 'true',
+    });
+
+    if (builderContent) {
+      // Render Builder.io page
+      return (
+        <BuilderComponent
+          content={builderContent}
+          options={{
+            preview: builderConfig.preview || resolvedSearchParams.preview === 'true',
+          }}
+        />
+      );
+    }
+  }
+
+  // Priority 2: Fall back to taxonomy routing
   const config = await getTaxonomyConfig();
   const parsedPath = parseTaxonomyPath(taxonomy, config);
   
@@ -141,4 +189,3 @@ export default async function TaxonomyPage({ params }: TaxonomyPageProps) {
   // Nothing found - 404
   notFound();
 }
-

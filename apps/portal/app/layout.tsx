@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ChatWidget } from "@/components/chat";
+import { VisualEditing } from "@/components/builder/VisualEditing";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,6 +29,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         {children}
+        {/* Builder.io Visual Editing - enables editing pages directly on your site */}
+        <VisualEditing />
         {/* CUSTOMIZE: Update chat widget styling and messages */}
         {showChat && (
           <ChatWidget

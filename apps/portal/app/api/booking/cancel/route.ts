@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { NotImplementedBookingProvider } from '@tinadmin/core/marketplace/interfaces';
+import { NotImplementedBookingProvider } from '@tinadmin/core';
 import { withRateLimit } from '@/middleware/api-rate-limit';
 
 /**
