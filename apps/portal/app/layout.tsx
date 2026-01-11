@@ -29,7 +29,7 @@ export default function RootLayout({
   const showChat = !!process.env.OPENAI_API_KEY;
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         {children}
         {/* Builder.io Visual Editing - enables editing pages directly on your site */}
