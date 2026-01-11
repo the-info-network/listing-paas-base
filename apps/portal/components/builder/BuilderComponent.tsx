@@ -25,7 +25,7 @@ async function loadBuilderModule() {
         builder.init(builderConfig.apiKey);
       }
 
-      // Import component registration
+      // Import component registration (components will auto-register)
       try {
         await import('@/components/builder/register-components');
       } catch (err) {
