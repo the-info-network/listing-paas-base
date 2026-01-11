@@ -59,8 +59,21 @@ export interface ListingSearchResult {
 
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  const urlStatus = SUPABASE_URL ? 'SET' : 'MISSING';
+  const keyStatus = SUPABASE_ANON_KEY ? 'SET' : 'MISSING';
+  
+  throw new Error(
+    `Missing Supabase environment variables in apps/portal. ` +
+    `NEXT_PUBLIC_SUPABASE_URL: ${urlStatus}, ` +
+    `NEXT_PUBLIC_SUPABASE_ANON_KEY: ${keyStatus}. ` +
+    `Please create apps/portal/.env.local with these variables and restart the dev server.`
+  );
+}
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /**

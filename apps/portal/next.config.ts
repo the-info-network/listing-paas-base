@@ -36,6 +36,11 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '**.builder.io',
       },
+      // Unsplash images (for sample/placeholder images)
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
       // Add more patterns as needed for your CDN
       ...(process.env.NEXT_PUBLIC_CDN_URL
         ? [
