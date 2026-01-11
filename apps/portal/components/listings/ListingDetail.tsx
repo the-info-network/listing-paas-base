@@ -18,9 +18,10 @@ interface ListingDetailProps {
 }
 
 export function ListingDetail({ listing }: ListingDetailProps) {
-  // Mock rating data
-  const rating = 4.7;
-  const reviewCount = 48;
+  // Generate consistent mock data based on listing ID (prevents hydration mismatch)
+  const idHash = listing.id.charCodeAt(0) + listing.id.charCodeAt(listing.id.length - 1);
+  const rating = 3.5 + ((idHash % 20) / 10); // 3.5-5.5 consistently
+  const reviewCount = 10 + ((idHash * 7) % 150); // 10-160 consistently
 
   const renderStars = (rate: number) => {
     return Array.from({ length: 5 }).map((_, i) => (
