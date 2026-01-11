@@ -292,14 +292,15 @@ export async function markDocumentHelpful(id: string): Promise<boolean> {
       };
 
       const currentCount = doc.metadata?.helpful_count || 0;
-      const { error } = await supabase
+      const updateData = {
+        metadata: {
+          ...doc.metadata,
+          helpful_count: currentCount + 1,
+        },
+      };
+      const { error } = await supabase!
         .from('knowledge_documents')
-        .update({
-          metadata: {
-            ...doc.metadata,
-            helpful_count: currentCount + 1,
-          },
-        })
+        .update(updateData as Record<string, unknown>)
         .eq('id', id);
 
       if (error) throw error;
