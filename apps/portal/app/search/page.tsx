@@ -62,10 +62,17 @@ function SearchContent() {
 
   // Auto-search if there are params - use useEffect to avoid calling during render
   useEffect(() => {
-    if (!hasSearched && searchParams.toString()) {
+    const searchQuery = searchParams.get("q");
+    const hasSearchParams = searchParams.toString().length > 0;
+    
+    if (hasSearchParams && !hasSearched) {
       performSearch();
     }
-  }, [searchParams.toString()]); // eslint-disable-line react-hooks/exhaustive-deps
+    // Reset search state when query changes
+    if (hasSearched && searchQuery !== searchParams.get("q")) {
+      setHasSearched(false);
+    }
+  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const query = searchParams.get("q");
 
