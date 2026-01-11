@@ -87,10 +87,10 @@ export function BuilderComponent({
     fetchContent();
   }, [model, content, options]);
 
-  if (importError) {
+  if (moduleError) {
     return (
       <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <p className="text-yellow-800">Builder.io integration not available: {importError}</p>
+        <p className="text-yellow-800">Builder.io integration not available: {moduleError}</p>
         <p className="text-sm text-yellow-700 mt-2">Content: {content?.blocks?.length || 0} blocks</p>
       </div>
     );
