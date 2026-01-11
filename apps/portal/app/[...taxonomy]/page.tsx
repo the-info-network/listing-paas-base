@@ -35,8 +35,10 @@ interface TaxonomyPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-// ISR Configuration - revalidate every 60 seconds
-export const revalidate = 60;
+// Force dynamic rendering to prevent build-time errors with Builder.io
+export const dynamic = 'force-dynamic';
+// ISR Configuration - revalidate every 60 seconds (only applies if dynamic is not force-dynamic)
+// export const revalidate = 60;
 
 /**
  * Generate metadata for SEO
@@ -99,16 +101,17 @@ export async function generateMetadata({
 /**
  * Generate static paths for SSG
  * Pre-generates popular listings and taxonomy terms at build time
+ * Disabled when dynamic = 'force-dynamic' to prevent build-time errors
  */
-export async function generateStaticParams() {
-  try {
-    const paths = await getPopularTaxonomyPaths(1000);
-    return paths.map((path) => ({ taxonomy: path }));
-  } catch (error) {
-    console.error("Error generating static params:", error);
-    return [];
-  }
-}
+// export async function generateStaticParams() {
+//   try {
+//     const paths = await getPopularTaxonomyPaths(1000);
+//     return paths.map((path) => ({ taxonomy: path }));
+//   } catch (error) {
+//     console.error("Error generating static params:", error);
+//     return [];
+//   }
+// }
 
 export default async function TaxonomyPage({ params, searchParams }: TaxonomyPageProps) {
   const { taxonomy } = await params;
