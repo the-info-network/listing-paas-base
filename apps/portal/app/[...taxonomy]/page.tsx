@@ -58,16 +58,22 @@ export async function generateMetadata({
   const path = '/' + taxonomy.join('/');
 
   // Check Builder.io first if API key is configured
-  if (builderConfig.apiKey) {
-    const builderContent = await getBuilderContent(path, {
-      preview: builderConfig.preview || resolvedSearchParams.preview === 'true',
-    });
+  // Skip during build to prevent errors with Builder.io React dependencies
+  if (builderConfig.apiKey && process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
+    try {
+      const builderContent = await getBuilderContent(path, {
+        preview: builderConfig.preview || resolvedSearchParams.preview === 'true',
+      });
 
-    if (builderContent) {
-      return {
-        title: builderContent.data?.title || 'Builder.io Page',
-        description: builderContent.data?.description || '',
-      };
+      if (builderContent) {
+        return {
+          title: builderContent.data?.title || 'Builder.io Page',
+          description: builderContent.data?.description || '',
+        };
+      }
+    } catch (error) {
+      // Fall through to taxonomy metadata if Builder.io fails
+      console.warn('Builder.io metadata fetch failed:', error);
     }
   }
 
