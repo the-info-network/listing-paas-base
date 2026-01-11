@@ -3,30 +3,44 @@
 import { useEffect, useState } from 'react';
 import { builderConfig } from '@/builder.config';
 
-// Safely import Builder.io with error handling
+// Lazy import Builder.io to prevent webpack module loading errors
 let builder: any = null;
 let BuilderComponentRenderer: any = null;
 let importError: string | null = null;
+let builderModulePromise: Promise<any> | null = null;
 
-try {
-  const builderModule = require('@builder.io/react');
-  builder = builderModule.builder;
-  BuilderComponentRenderer = builderModule.BuilderComponent;
-
-  // Initialize Builder.io SDK
-  if (builderConfig.apiKey && builder) {
-    builder.init(builderConfig.apiKey);
+async function loadBuilderModule() {
+  if (builderModulePromise) {
+    return builderModulePromise;
   }
-} catch (err) {
-  importError = '@builder.io/react module not available';
-  console.warn(importError);
-}
 
-// Import component registration
-try {
-  require('@/components/builder/register-components');
-} catch (err) {
-  console.warn('Component registration failed:', err);
+  builderModulePromise = (async () => {
+    try {
+      const builderModule = await import('@builder.io/react');
+      builder = builderModule.builder;
+      BuilderComponentRenderer = builderModule.BuilderComponent;
+
+      // Initialize Builder.io SDK
+      if (builderConfig.apiKey && builder) {
+        builder.init(builderConfig.apiKey);
+      }
+
+      // Import component registration (components will auto-register)
+      try {
+        await import('@/components/builder/register-components');
+      } catch (err) {
+        console.warn('Component registration failed:', err);
+      }
+
+      return { builder, BuilderComponentRenderer };
+    } catch (err) {
+      importError = '@builder.io/react module not available';
+      console.warn(importError, err);
+      return { builder: null, BuilderComponentRenderer: null };
+    }
+  })();
+
+  return builderModulePromise;
 }
 
 /**
@@ -53,39 +67,70 @@ export function BuilderComponent({
 }: BuilderComponentProps) {
   const [builderContent, setBuilderContent] = useState<any>(content);
   const [error, setError] = useState<string | null>(null);
-  const [moduleError] = useState<string | null>(importError);
+  const [moduleError, setModuleError] = useState<string | null>(importError);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // If content is provided, use it directly
-    if (content) {
-      setBuilderContent(content);
-      return;
-    }
-
-    // Otherwise, fetch content from Builder.io
-    if (!builderConfig.apiKey) {
-      setError('Builder.io API key is not configured');
-      return;
-    }
-
-    const fetchContent = async () => {
-      try {
-        const fetchedContent = await builder
-          .get(model, {
-            ...options,
-            preview: builderConfig.preview || options.preview,
-          })
-          .promise();
-
-        setBuilderContent(fetchedContent);
-      } catch (err) {
-        console.error('Error fetching Builder.io content:', err);
-        setError('Failed to load Builder.io content');
+    const initialize = async () => {
+      // Load Builder.io module if not already loaded
+      if (!builder || !BuilderComponentRenderer) {
+        setIsLoading(true);
+        try {
+          const { builder: loadedBuilder, BuilderComponentRenderer: loadedRenderer } = await loadBuilderModule();
+          if (!loadedBuilder || !loadedRenderer) {
+            setModuleError('Builder.io module failed to load');
+            setIsLoading(false);
+            return;
+          }
+        } catch (err) {
+          setModuleError('Builder.io module not available');
+          setIsLoading(false);
+          return;
+        }
       }
+      setIsLoading(false);
+
+      // If content is provided, use it directly
+      if (content) {
+        setBuilderContent(content);
+        return;
+      }
+
+      // Otherwise, fetch content from Builder.io
+      if (!builderConfig.apiKey) {
+        setError('Builder.io API key is not configured');
+        return;
+      }
+
+      const fetchContent = async () => {
+        try {
+          const fetchedContent = await builder
+            .get(model, {
+              ...options,
+              preview: builderConfig.preview || options.preview,
+            })
+            .promise();
+
+          setBuilderContent(fetchedContent);
+        } catch (err) {
+          console.error('Error fetching Builder.io content:', err);
+          setError('Failed to load Builder.io content');
+        }
+      };
+
+      fetchContent();
     };
 
-    fetchContent();
+    initialize();
   }, [model, content, options]);
+
+  if (isLoading) {
+    return (
+      <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+        <p className="text-gray-600">Loading Builder.io...</p>
+      </div>
+    );
+  }
 
   if (moduleError) {
     return (
