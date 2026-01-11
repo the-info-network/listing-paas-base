@@ -126,20 +126,25 @@ export default async function TaxonomyPage({ params, searchParams }: TaxonomyPag
 
   // Priority 1: Check Builder.io first (if API key is configured)
   if (builderConfig.apiKey) {
-    const builderContent = await getBuilderContent(path, {
-      preview: builderConfig.preview || resolvedSearchParams.preview === 'true',
-    });
+    try {
+      const builderContent = await getBuilderContent(path, {
+        preview: builderConfig.preview || resolvedSearchParams.preview === 'true',
+      });
 
-    if (builderContent) {
-      // Render Builder.io page
-      return (
-        <BuilderComponent
-          content={builderContent}
-          options={{
-            preview: builderConfig.preview || resolvedSearchParams.preview === 'true',
-          }}
-        />
-      );
+      if (builderContent) {
+        // Render Builder.io page
+        return (
+          <BuilderComponent
+            content={builderContent}
+            options={{
+              preview: builderConfig.preview || resolvedSearchParams.preview === 'true',
+            }}
+          />
+        );
+      }
+    } catch (error) {
+      // Fall through to taxonomy routing if Builder.io fails
+      console.warn('Builder.io content fetch failed:', error);
     }
   }
 
