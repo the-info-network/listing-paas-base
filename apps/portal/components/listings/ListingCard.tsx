@@ -23,10 +23,11 @@ interface ListingCardProps {
 export function ListingCard({ listing, className = "" }: ListingCardProps) {
   const primaryImage = listing.images?.[0] || "/images/placeholder-listing.jpg";
 
-  // Mock rating data (would come from API in production)
-  const rating = Math.random() * 2 + 3.5; // Random 3.5-5.5
-  const reviewCount = Math.floor(Math.random() * 150) + 10; // Random 10-160
-  const isAvailable = Math.random() > 0.3; // 70% available
+  // Generate consistent mock data based on listing ID (prevents hydration mismatch)
+  const idHash = listing.id.charCodeAt(0) + listing.id.charCodeAt(listing.id.length - 1);
+  const rating = 3.5 + ((idHash % 20) / 10); // 3.5-5.5 consistently
+  const reviewCount = 10 + ((idHash * 7) % 150); // 10-160 consistently
+  const isAvailable = (idHash % 10) > 2; // 70% available consistently
 
   const renderStars = (rate: number) => {
     return (
