@@ -361,29 +361,33 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="py-16 lg:py-24 bg-blue-600">
+        {/* CTA Section - Service Booking Focus */}
+        <section className="py-16 lg:py-24 bg-gradient-to-r from-orange-500 to-cyan-500">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
-              {/* CUSTOMIZE: Update CTA headline */}
-              Ready to Get Started?
+            <h2 className="text-3xl lg:text-5xl font-bold text-white mb-6">
+              Ready to Find Your Perfect Service Provider?
             </h2>
-            <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-              {/* CUSTOMIZE: Update CTA description */}
-              Join thousands of users who have found what they&apos;re looking for.
+            <p className="text-lg text-white/90 mb-10 max-w-2xl mx-auto">
+              Join thousands of satisfied customers and get professional help when you need it. Browse, compare, and book with confidence today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/signup"
-                className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-8 py-3 rounded-lg transition-colors"
+                href="/listings"
+                className="bg-white text-orange-600 hover:bg-gray-100 font-bold px-8 py-4 rounded-xl transition-all duration-200 hover:scale-105 inline-flex items-center gap-2 justify-center shadow-lg"
               >
-                Create Account
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Start Browsing Now
               </Link>
               <Link
-                href="/listings"
-                className="bg-blue-700 text-white hover:bg-blue-800 font-semibold px-8 py-3 rounded-lg transition-colors"
+                href="/signup"
+                className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-bold px-8 py-4 rounded-xl transition-all duration-200 border-2 border-white/50 hover:border-white inline-flex items-center gap-2 justify-center"
               >
-                Browse Listings
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+                Create Account
               </Link>
             </div>
           </div>
