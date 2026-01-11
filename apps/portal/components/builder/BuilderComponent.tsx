@@ -53,6 +53,7 @@ export function BuilderComponent({
 }: BuilderComponentProps) {
   const [builderContent, setBuilderContent] = useState<any>(content);
   const [error, setError] = useState<string | null>(null);
+  const [moduleError] = useState<string | null>(importError);
 
   useEffect(() => {
     // If content is provided, use it directly
