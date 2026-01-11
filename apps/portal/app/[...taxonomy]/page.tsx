@@ -6,8 +6,7 @@ import { builderConfig } from '@/builder.config';
 
 // Dynamically import BuilderComponent to prevent build-time errors
 const BuilderComponent = dynamicImport(
-  () => import('@/components/builder/BuilderComponent').then(mod => ({ default: mod.BuilderComponent })),
-  { ssr: false }
+  () => import('@/components/builder/BuilderComponent').then(mod => ({ default: mod.BuilderComponent }))
 );
 import { Header, Footer } from "@/components/layout";
 import { TaxonomyBreadcrumb } from "@/components/taxonomy/TaxonomyBreadcrumb";
