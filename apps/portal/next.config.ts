@@ -85,6 +85,8 @@ const nextConfig: NextConfig = {
       '@tinadmin/core': path.resolve(__dirname, '../../packages/@tinadmin/core/src'),
       '@tinadmin/ui-consumer': path.resolve(__dirname, '../../packages/@tinadmin/ui-consumer/src'),
       '@tinadmin/config': path.resolve(__dirname, '../../packages/@tinadmin/config/src'),
+      // Resolve @/core/* imports from @tinadmin/core package
+      '@/core': path.resolve(__dirname, '../../packages/@tinadmin/core/src'),
     };
     
     if (!isServer) {
