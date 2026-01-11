@@ -24,13 +24,13 @@ export interface BookingProvider {
 }
 
 export class NotImplementedBookingProvider implements BookingProvider {
-  async getAvailability() {
+  async getAvailability(_params: Record<string, any>): Promise<{ slots: any[] }> {
     throw new Error('BOOKING_NOT_IMPLEMENTED');
   }
-  async createBooking() {
+  async createBooking(_params: Record<string, any>): Promise<{ bookingId: string }> {
     throw new Error('BOOKING_NOT_IMPLEMENTED');
   }
-  async cancelBooking() {
+  async cancelBooking(_params: Record<string, any>): Promise<{ cancelled: boolean }> {
     throw new Error('BOOKING_NOT_IMPLEMENTED');
   }
 }
