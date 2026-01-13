@@ -347,7 +347,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle photo uploads (if any)
-    let imageUrls: string[] = [];
+    const imageUrls: string[] = [];
     if (reviewData.photos && reviewData.photos.length > 0) {
       // TODO: Upload photos to storage (Supabase Storage, S3, etc.)
       // For now, we'll skip photo uploads
