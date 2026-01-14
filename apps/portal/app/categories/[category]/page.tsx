@@ -4,6 +4,8 @@ import { Header, Footer } from "@/components/layout";
 import { SearchResults } from "@/components/search";
 import { getListingsByCategory, getCategories } from "@/lib/listings";
 
+const PLATFORM_NAME = process.env.NEXT_PUBLIC_PLATFORM_NAME || "Your Platform";
+
 /**
  * Category Listings Page
  *
@@ -24,15 +26,21 @@ export async function generateMetadata({
 
   return {
     // CUSTOMIZE: Update title format for your vertical
-    title: `${categoryName.charAt(0).toUpperCase() + categoryName.slice(1)} Listings | Listing Platform`,
+    title: `${categoryName.charAt(0).toUpperCase() + categoryName.slice(1)} Listings | ${PLATFORM_NAME}`,
     description: `Browse all ${categoryName} listings. Find the best ${categoryName} options available.`,
   };
 }
 
 // Generate static paths for common categories
 export async function generateStaticParams() {
-  const categories = await getCategories();
-  return categories.map((cat) => ({ category: cat.slug }));
+  try {
+    const categories = await getCategories();
+    return categories.map((cat) => ({ category: cat.slug }));
+  } catch (error) {
+    console.error('Error generating static params for categories:', error);
+    // Return empty array - pages will be generated on-demand
+    return [];
+  }
 }
 
 export default async function CategoryPage({

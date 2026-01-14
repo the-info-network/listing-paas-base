@@ -17,24 +17,28 @@ const nextConfig: NextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60,
-    // CUSTOMIZE: Add your CDN domain for remote image optimization
+    /**
+     * CUSTOMIZE: Allowlist remote image hosts.
+     * - NEXT_PUBLIC_CDN_URL: single CDN base URL (e.g., https://cdn.example.com)
+     * - NEXT_PUBLIC_IMAGE_HOSTS: comma-separated hostnames (e.g., img1.example.com,img2.example.com)
+     */
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**.wasabisys.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'cdn.yourplatform.com',
-      },
-      // Add more patterns as needed for your CDN
       ...(process.env.NEXT_PUBLIC_CDN_URL
         ? [
             {
-              protocol: 'https' as const,
+              protocol: "https" as const,
               hostname: new URL(process.env.NEXT_PUBLIC_CDN_URL).hostname,
             },
           ]
+        : []),
+      ...(process.env.NEXT_PUBLIC_IMAGE_HOSTS
+        ? process.env.NEXT_PUBLIC_IMAGE_HOSTS.split(",")
+            .map((host) => host.trim())
+            .filter(Boolean)
+            .map((hostname) => ({
+              protocol: "https" as const,
+              hostname,
+            }))
         : []),
     ],
   },
@@ -42,14 +46,20 @@ const nextConfig: NextConfig = {
   // Enable compression
   compress: true,
   
+  // Output configuration for static export (optional)
+  // Note: 'standalone' is for production builds only, not dev mode
+  // output: 'standalone',
+  
   // Bundle optimization for consumer portal
-  experimental: {
-    optimizePackageImports: [
-      "@tinadmin/core",
-      "@tinadmin/ui-consumer",
-      "@heroicons/react",
-    ],
-  },
+  // Temporarily disabled due to Next.js 15.5.9 bug: expandNextJsTemplate is not a function
+  // experimental: {
+  //   optimizePackageImports: [
+  //     "@tinadmin/core",
+  //     "@tinadmin/ui-consumer",
+  //     "@heroicons/react",
+  //     "@builder.io/react",
+  //   ],
+  // },
   
   // Webpack configuration
   webpack(config, { isServer }) {
@@ -65,6 +75,8 @@ const nextConfig: NextConfig = {
       '@tinadmin/core': path.resolve(__dirname, '../../packages/@tinadmin/core/src'),
       '@tinadmin/ui-consumer': path.resolve(__dirname, '../../packages/@tinadmin/ui-consumer/src'),
       '@tinadmin/config': path.resolve(__dirname, '../../packages/@tinadmin/config/src'),
+      // Resolve @/core/* imports from @tinadmin/core package
+      '@/core': path.resolve(__dirname, '../../packages/@tinadmin/core/src'),
     };
     
     if (!isServer) {

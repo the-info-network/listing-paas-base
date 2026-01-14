@@ -1,15 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "cd ../.. && pnpm turbo build --filter=@tinadmin/portal",
+  "buildCommand": "cd ../.. && pnpm turbo build --filter=@template/portal",
   "installCommand": "cd ../.. && pnpm install",
   "outputDirectory": ".next",
-  "rewrites": [
-    {
-      "source": "/api/v1/:path*",
-      "destination": "https://api.yourplatform.com/api/:path*"
-    }
-  ],
+  "rewrites": [],
   "headers": [
     {
       "source": "/(.*)",

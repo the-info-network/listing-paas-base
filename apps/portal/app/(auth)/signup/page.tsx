@@ -3,6 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 
+const PLATFORM_NAME = process.env.NEXT_PUBLIC_PLATFORM_NAME || "Your Platform";
+const PLATFORM_INITIAL = PLATFORM_NAME.charAt(0).toUpperCase() || "P";
+
 /**
  * Sign Up Page
  *
@@ -49,11 +52,11 @@ export default function SignUpPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
             <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">L</span>
+              <span className="text-white font-bold text-xl">{PLATFORM_INITIAL}</span>
             </div>
             <span className="font-bold text-2xl text-gray-900 dark:text-white">
               {/* CUSTOMIZE: Platform name */}
-              Listing Platform
+              {PLATFORM_NAME}
             </span>
           </Link>
         </div>
@@ -144,13 +147,13 @@ export default function SignUpPage() {
           {/* Terms */}
           <p className="mt-4 text-xs text-center text-gray-500 dark:text-gray-400">
             By signing up, you agree to our{" "}
-            <a href="/terms" className="text-blue-600 hover:underline">
+            <Link href="/terms" className="text-blue-600 hover:underline">
               Terms of Service
-            </a>{" "}
+            </Link>{" "}
             and{" "}
-            <a href="/privacy" className="text-blue-600 hover:underline">
+            <Link href="/privacy" className="text-blue-600 hover:underline">
               Privacy Policy
-            </a>
+            </Link>
             .
           </p>
 
