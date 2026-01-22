@@ -4,10 +4,11 @@ import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import TextArea from "@/components/form/input/TextArea";
-import { PlusIcon, PencilIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, PencilIcon, MagnifyingGlassIcon, DocumentArrowUpIcon } from "@heroicons/react/24/outline";
 import { TrashBinIcon as TrashIcon } from "@/icons";
 import React, { useState, useEffect } from "react";
 import { createBrowserClient } from "@supabase/ssr";
+import { DocumentUploader } from "@/components/knowledge-base/DocumentUploader";
 
 interface KnowledgeDocument {
   id: string;
@@ -24,30 +25,14 @@ interface KnowledgeDocument {
   updated_at: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-
-function getAuthToken(): Promise<string | null> {
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-  return supabase.auth.getSession().then(({ data: { session } }) => session?.access_token || null);
-}
-
 async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const token = await getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const response = await fetch(endpoint, {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
       ...options.headers,
     },
   });
@@ -67,6 +52,7 @@ export default function KnowledgeBasePage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [showUpload, setShowUpload] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: "",
@@ -87,10 +73,10 @@ export default function KnowledgeBasePage() {
         limit: "100",
         ...(search && { search }),
       });
-      const data = await apiRequest<{ data: KnowledgeDocument[] }>(
+      const data = await apiRequest<{ data: KnowledgeDocument[]; pagination?: unknown }>(
         `/api/knowledge-base?${queryParams}`
       );
-      setDocuments(Array.isArray(data) ? data : data.data || []);
+      setDocuments(Array.isArray(data) ? data : data || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load documents");
       console.error("Fetch error:", err);
@@ -228,11 +214,35 @@ export default function KnowledgeBasePage() {
                 sourceType: "manual",
                 isActive: true,
               });
+              setShowUpload(false);
               setShowForm(!showForm);
             }}
           >
             <PlusIcon className="h-4 w-4" />
             Create Article
+          </Button>
+        </div>
+
+        <div className="flex gap-3">
+          <Button
+            variant={showUpload ? "outline" : "solid"}
+            onClick={() => {
+              setShowUpload(true);
+              setShowForm(false);
+            }}
+          >
+            <DocumentArrowUpIcon className="h-4 w-4" />
+            Upload File
+          </Button>
+          <Button
+            variant={!showUpload ? "outline" : "ghost"}
+            onClick={() => {
+              setShowUpload(false);
+              setShowForm(true);
+            }}
+          >
+            <PlusIcon className="h-4 w-4" />
+            Manual Entry
           </Button>
         </div>
 
@@ -254,7 +264,16 @@ export default function KnowledgeBasePage() {
           />
         </div>
 
-        {showForm && (
+        {showUpload && (
+          <DocumentUploader
+            onUploaded={() => {
+              setShowUpload(false);
+              fetchDocuments();
+            }}
+          />
+        )}
+
+        {showForm && !showUpload && (
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
               {editingId ? "Edit Article" : "Create Article"}
