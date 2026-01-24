@@ -88,6 +88,12 @@ export function DocumentUploader({ onUploaded }: Props) {
         )}
       </div>
 
+      {status === "success" && (
+        <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700 dark:border-green-900 dark:bg-green-900/20 dark:text-green-200">
+          Upload complete.
+        </div>
+      )}
+
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-900/20 dark:text-red-200">
           {error}

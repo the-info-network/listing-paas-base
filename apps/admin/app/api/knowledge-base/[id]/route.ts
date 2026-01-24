@@ -12,7 +12,7 @@ const updateDocumentSchema = z.object({
   title: z.string().min(1).optional(),
   content: z.string().min(1).optional(),
   excerpt: z.string().max(500).optional().nullable(),
-  sourceType: z.enum(['manual', 'listing', 'faq', 'article']).optional(),
+  sourceType: z.enum(['manual', 'listing', 'faq', 'article', 'upload']).optional(),
   sourceUrl: z.string().url().optional().nullable(),
   sourceId: z.string().optional().nullable(),
   category: z.string().optional().nullable(),
